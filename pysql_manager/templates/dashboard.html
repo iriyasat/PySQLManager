@@ -30,9 +30,9 @@
   </div>
 </div>
 
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
   <!-- Databases List -->
-  <div class="glass-card">
+  <div class="lg:col-span-2 glass-card overflow-hidden">
     <div class="glass-card-header">
       <h2>📁 Databases List</h2>
       <span class="tag tag-primary">{{ databases|length }} databases</span>
@@ -76,7 +76,7 @@
   </div>
 
   <!-- Create Database Form -->
-  <div class="glass-card" style="height: fit-content;">
+  <div class="lg:col-span-1 glass-card h-fit">
     <div class="glass-card-header">
       <h2>🆕 Create Database</h2>
     </div>

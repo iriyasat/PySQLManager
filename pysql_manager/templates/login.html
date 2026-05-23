@@ -1,58 +1,178 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="light" lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <title>Connect | PySQLManager</title>
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+  
+  <!-- Material Symbols -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-secondary-container": "#fefcff",
+            "on-primary-fixed": "#101c2c",
+            "inverse-surface": "#2e3132",
+            "on-error-container": "#93000a",
+            "on-tertiary": "#ffffff",
+            "surface-container-high": "#e7e8e9",
+            "surface-container-lowest": "#ffffff",
+            "on-secondary-fixed": "#001a42",
+            "on-secondary-fixed-variant": "#004395",
+            "on-tertiary-fixed": "#002113",
+            "primary": "#091525",
+            "primary-fixed": "#d7e3f9",
+            "on-secondary": "#ffffff",
+            "primary-fixed-dim": "#bbc7dc",
+            "error-container": "#ffdad6",
+            "tertiary-fixed": "#6ffbbe",
+            "on-primary-container": "#8591a5",
+            "secondary-fixed-dim": "#adc6ff",
+            "on-tertiary-fixed-variant": "#005236",
+            "surface": "#f8f9fa",
+            "outline": "#75777d",
+            "on-surface-variant": "#44474c",
+            "on-tertiary-container": "#00a472",
+            "secondary-container": "#2170e4",
+            "outline-variant": "#c5c6cc",
+            "surface-dim": "#d9dadb",
+            "surface-tint": "#535f71",
+            "surface-container-low": "#f3f4f5",
+            "inverse-on-surface": "#f0f1f2",
+            "on-error": "#ffffff",
+            "surface-bright": "#f8f9fa",
+            "on-surface": "#191c1d",
+            "background": "#f8f9fa",
+            "tertiary-container": "#00301e",
+            "tertiary": "#00190e",
+            "surface-variant": "#e1e3e4",
+            "on-background": "#191c1d",
+            "surface-container-highest": "#e1e3e4",
+            "error": "#ba1a1a",
+            "on-primary": "#ffffff",
+            "inverse-primary": "#bbc7dc",
+            "surface-container": "#edeeef",
+            "secondary": "#0058be",
+            "on-primary-fixed-variant": "#3c4859",
+            "secondary-fixed": "#d8e2ff",
+            "primary-container": "#1e2a3a",
+            "tertiary-fixed-dim": "#4edea3"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "header-height": "64px",
+            "grid-gutter": "1.5rem",
+            "stack-gap": "1rem",
+            "container-padding": "2rem",
+            "sidebar-width": "260px"
+          },
+          "fontFamily": {
+            "label-md": ["Inter"],
+            "caption": ["Inter"],
+            "headline-lg": ["Inter"],
+            "headline-md": ["Inter"],
+            "body-lg": ["Inter"],
+            "display": ["Inter"],
+            "body-md": ["Inter"]
+          },
+          "fontSize": {
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+            "caption": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "display": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #e1e3e4; border-radius: 10px; }
+  </style>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body style="background: radial-gradient(circle at top right, hsl(265, 50%, 12%), var(--bg-color));">
-  <div class="login-wrapper">
-    <div class="login-card">
-      <div class="login-title">📊 PySQLManager</div>
-      <div class="login-subtitle">Database Management Interface</div>
-      
+<body class="bg-background min-h-screen flex items-center justify-center p-6 antialiased font-body-md text-body-md selection:bg-secondary-container selection:text-on-secondary-container" style="background: radial-gradient(circle at top right, #d7e3f9, #f8f9fa);">
+  <div class="w-full max-w-[480px]">
+    <div class="bg-surface-container-lowest border border-surface-container-low rounded-xl p-8 shadow-lg">
+      <div class="flex flex-col items-center mb-6">
+        <div class="w-12 h-12 rounded-lg bg-secondary-container flex items-center justify-center mb-3">
+          <span class="material-symbols-outlined text-on-secondary-container text-3xl">database</span>
+        </div>
+        <h1 class="font-display text-display text-2xl font-bold text-on-surface">PySQLManager</h1>
+        <p class="font-caption text-caption text-on-surface-variant">Connect to MySQL Database Server</p>
+      </div>
+
       <!-- Flash notifications -->
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-          {% for category, msg in messages %}
-            <div class="alert alert-{{ category }}" role="alert" style="margin-bottom: 20px; font-size: 0.9rem;">
-              <span>{{ msg }}</span>
-            </div>
-          {% endfor %}
+          <div class="mb-6 space-y-3">
+            {% for category, msg in messages %}
+              {% set alert_bg = 'bg-error-container text-on-error-container border-error' if category == 'danger' else 'bg-tertiary-fixed text-on-tertiary-fixed-variant border-tertiary-fixed' %}
+              <div class="alert px-4 py-3 rounded-lg border flex items-center justify-between {{ alert_bg }} shadow-sm transition-opacity duration-300" role="alert">
+                <span class="font-medium text-xs">{{ msg }}</span>
+                <button type="button" class="text-current hover:opacity-70 focus:outline-none" onclick="this.parentElement.remove()">
+                  <span class="material-symbols-outlined text-[20px] font-bold">close</span>
+                </button>
+              </div>
+            {% endfor %}
+          </div>
         {% endif %}
       {% endwith %}
 
-      <form action="{{ url_for('auth_bp.login') }}" method="POST" id="login-form">
-        <div class="form-group">
-          <label for="host">MySQL Server Host</label>
-          <input type="text" id="host" name="host" class="form-control" value="{{ form_data.host }}" required autocomplete="off">
+      <form action="{{ url_for('auth_bp.login') }}" method="POST" id="login-form" class="space-y-4">
+        <div>
+          <label for="host" class="block font-label-md text-xs text-on-surface-variant uppercase tracking-wider mb-1.5">MySQL Server Host</label>
+          <input type="text" id="host" name="host" class="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface text-on-surface focus:outline-none focus:border-secondary-container focus:ring-1 focus:ring-secondary-container transition-all" value="{{ form_data.host }}" required autocomplete="off">
         </div>
         
-        <div class="form-group">
-          <label for="port">MySQL Port</label>
-          <input type="text" id="port" name="port" class="form-control" value="{{ form_data.port }}" required autocomplete="off" inputmode="numeric" pattern="\d+">
+        <div>
+          <label for="port" class="block font-label-md text-xs text-on-surface-variant uppercase tracking-wider mb-1.5">MySQL Port</label>
+          <input type="text" id="port" name="port" class="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface text-on-surface focus:outline-none focus:border-secondary-container focus:ring-1 focus:ring-secondary-container transition-all" value="{{ form_data.port }}" required autocomplete="off" inputmode="numeric" pattern="\d+">
         </div>
         
-        <div class="form-row">
-          <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" class="form-control" value="{{ form_data.username }}" required autocomplete="username">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="username" class="block font-label-md text-xs text-on-surface-variant uppercase tracking-wider mb-1.5">Username</label>
+            <input type="text" id="username" name="username" class="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface text-on-surface focus:outline-none focus:border-secondary-container focus:ring-1 focus:ring-secondary-container transition-all" value="{{ form_data.username }}" required autocomplete="username">
           </div>
           
-          <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" class="form-control" placeholder="No Password" autocomplete="current-password">
+          <div>
+            <label for="password" class="block font-label-md text-xs text-on-surface-variant uppercase tracking-wider mb-1.5">Password</label>
+            <input type="password" id="password" name="password" class="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface text-on-surface focus:outline-none focus:border-secondary-container focus:ring-1 focus:ring-secondary-container transition-all" placeholder="No Password" autocomplete="current-password">
           </div>
         </div>
         
-        <div class="form-group" style="margin-top: 10px;">
-          <label for="database">Default Database (Optional)</label>
-          <input type="text" id="database" name="database" class="form-control" value="{{ form_data.database }}" placeholder="e.g. mysql" autocomplete="off">
+        <div>
+          <label for="database" class="block font-label-md text-xs text-on-surface-variant uppercase tracking-wider mb-1.5">Default Database (Optional)</label>
+          <input type="text" id="database" name="database" class="w-full px-4 py-2.5 rounded-lg border border-outline-variant bg-surface text-on-surface focus:outline-none focus:border-secondary-container focus:ring-1 focus:ring-secondary-container transition-all" value="{{ form_data.database }}" placeholder="e.g. mysql" autocomplete="off">
         </div>
         
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 24px; font-size: 1.05rem;">
-          ⚡ Connect to MySQL
+        <button type="submit" class="w-full flex items-center justify-center gap-2 px-6 py-3 bg-secondary-container hover:bg-secondary text-on-primary rounded-lg font-bold text-sm shadow-md hover:shadow-lg transition-all active:scale-95 duration-200 mt-6">
+          <span class="material-symbols-outlined text-[20px]">bolt</span>
+          <span>Connect to MySQL</span>
         </button>
       </form>
     </div>

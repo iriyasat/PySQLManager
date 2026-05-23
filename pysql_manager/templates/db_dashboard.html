@@ -3,9 +3,9 @@
 {% block title %}{{ db_name }} Dashboard | PySQLManager{% endblock %}
 
 {% block content %}
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
   <!-- Tables list inside database -->
-  <div class="glass-card">
+  <div class="lg:col-span-2 glass-card overflow-hidden">
     <div class="glass-card-header">
       <h2>📐 Tables in database: <code>{{ db_name }}</code></h2>
       <span class="tag tag-primary">{{ total_tables }} tables</span>
@@ -68,7 +68,7 @@
   </div>
 
   <!-- Create Table Panel -->
-  <div class="glass-card" style="height: fit-content;">
+  <div class="lg:col-span-1 glass-card h-fit">
     <div class="glass-card-header">
       <h2>🆕 Create Table</h2>
     </div>

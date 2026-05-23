@@ -3,9 +3,9 @@
 {% block title %}Operations: {{ table_name }} | PySQLManager{% endblock %}
 
 {% block content %}
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
   <!-- Left Side: Table alterations -->
-  <div style="display: flex; flex-direction: column; gap: 24px;">
+  <div class="flex flex-col gap-6">
     <!-- Rename Table -->
     <div class="glass-card" style="margin-bottom: 0;">
       <div class="glass-card-header">
@@ -51,7 +51,7 @@
   </div>
 
   <!-- Right Side: Engine parameters and truncates -->
-  <div style="display: flex; flex-direction: column; gap: 24px;">
+  <div class="flex flex-col gap-6">
     <!-- Table Options (Engine, collation) -->
     <div class="glass-card" style="margin-bottom: 0;">
       <div class="glass-card-header">
