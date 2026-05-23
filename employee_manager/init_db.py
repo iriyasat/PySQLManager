@@ -107,152 +107,132 @@ def initialize_database():
             conn.commit()
             print("Schema tables created successfully!")
             
-            # 6. Seed mock records
-            print("Seeding mock departments...")
-            cursor.executemany("""
-                INSERT INTO departments (department_name, location) VALUES (%s, %s)
-            """, [
-                ("Engineering", "Dhaka"),
-                ("Marketing", "Chittagong"),
-                ("Human Resources", "Sylhet"),
-                ("Finance", "Dhaka"),
-                ("Operations", "Khulna"),
-                ("Customer Support", "Rajshahi"),
-                ("Research & Development", "Dhaka"),
-                ("Sales", "Barisal"),
-                ("Legal Affairs", "Dhaka"),
-                ("Procurement", "Comilla"),
-                ("IT Support", "Rangpur"),
-                ("Administration", "Mymensingh"),
-                ("Business Development", "Dhaka"),
-                ("Public Relations", "Sylhet"),
-                ("Quality Assurance", "Khulna"),
-                ("Security Management", "Chittagong"),
-                ("Training & Development", "Rajshahi"),
-                ("Data Science", "Dhaka"),
-                ("Cloud Infrastructure", "Dhaka"),
-                ("Product Management", "Barisal"),
-                ("Technical Support", "Comilla"),
-                ("Internal Audit", "Sylhet"),
-                ("Mobile Development", "Dhaka"),
-                ("UI/UX Design", "Khulna"),
-                ("Supply Chain", "Rangpur")
-            ])
+            # 6. Seed new records
+            print("Seeding departments...")
+            cursor.execute("""
+                INSERT INTO departments (department_name, location) VALUES
+                ('Human Resources', 'Dhaka'),
+                ('Software Development', 'Dhaka'),
+                ('Finance', 'Chattogram'),
+                ('Marketing', 'Dhaka'),
+                ('Customer Support', 'Sylhet'),
+                ('Research and Development', 'Gazipur'),
+                ('Cyber Security', 'Dhaka'),
+                ('Operations', 'Khulna'),
+                ('Sales', 'Rajshahi'),
+                ('Logistics', 'Narayanganj'),
+                ('Administration', 'Cumilla'),
+                ('Cloud Infrastructure', 'Dhaka'),
+                ('Data Analytics', 'Dhaka'),
+                ('Quality Assurance', 'Barishal'),
+                ('Networking', 'Rangpur'),
+                ('AI Engineering', 'Dhaka'),
+                ('Procurement', 'Mymensingh'),
+                ('Business Development', 'Dhaka'),
+                ('Technical Support', 'Bogura'),
+                ('Mobile App Development', 'Dhaka'),
+                ('Legal Affairs', 'Dhaka'),
+                ('Content Management', 'Sylhet'),
+                ('Public Relations', 'Chattogram'),
+                ('Product Management', 'Dhaka'),
+                ('Training and Development', 'Gazipur');
+            """)
             
-            conn.commit()
-            
-            # Get department IDs to associate employees correctly
-            cursor.execute("SELECT department_id, department_name FROM departments;")
-            depts = {row[1]: row[0] for row in cursor.fetchall()}
-            
-            print("Seeding mock employees...")
-            cursor.executemany("""
-                INSERT INTO employees (employee_name, email, phone, salary, joining_date, department_id, status)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """, [
-                ("Tanvir Ahmed", "tanvir.ahmed@company.com", "01712000001", 72000.00, "2022-02-15", depts["Human Resources"], True),
-                ("Mehjabin Noor", "mehjabin.noor@company.com", "01712000002", 64000.00, "2021-11-03", depts["Engineering"], True),
-                ("Sabbir Hasan", "sabbir.hasan@company.com", "01712000003", 59000.00, "2020-08-12", depts["Operations"], True),
-                ("Farzana Kabir", "farzana.kabir@company.com", "01712000004", 81000.00, "2019-04-25", depts["Human Resources"], True),
-                ("Rakib Chowdhury", "rakib.chowdhury@company.com", "01712000005", 52000.00, "2023-06-19", depts["Quality Assurance"], True),
-                ("Nusrat Jahan", "nusrat.jahan@company.com", "01712000006", 47000.00, "2022-09-10", depts["Security Management"], True),
-                ("Imran Hossain", "imran.hossain@company.com", "01712000007", 98000.00, "2018-01-15", depts["Training & Development"], True),
-                ("Tania Sultana", "tania.sultana@company.com", "01712000008", 76000.00, "2020-12-01", depts["Technical Support"], True),
-                ("Mahmudul Karim", "mahmudul.karim@company.com", "01712000009", 61000.00, "2021-07-21", depts["Legal Affairs"], True),
-                ("Rifat Ara", "rifat.ara@company.com", "01712000010", 55000.00, "2022-05-18", depts["Customer Support"], True),
-                ("Zamilur Rahman", "zamilur.rahman@company.com", "01712000011", 88000.00, "2019-10-12", depts["Finance"], True),
-                ("Sadia Islam", "sadia.islam@company.com", "01712000012", 49000.00, "2023-08-30", depts["Operations"], True),
-                ("Arifur Rahman", "arifur.rahman@company.com", "01712000013", 93000.00, "2017-06-01", depts["Engineering"], True),
-                ("Jesmin Akter", "jesmin.akter@company.com", "01712000014", 67000.00, "2021-04-14", depts["Sales"], True),
-                ("Kamrul Hasan", "kamrul.hasan@company.com", "01712000015", 78000.00, "2020-09-05", depts["Research & Development"], True),
-                ("Tasnim Jahan", "tasnim.jahan@company.com", "01712000016", 52000.00, "2022-11-22", depts["Customer Support"], True),
-                ("Monirul Islam", "monirul.islam@company.com", "01712000017", 71000.00, "2021-03-10", depts["IT Support"], True),
-                ("Sharmin Sultana", "sharmin.sultana@company.com", "01712000018", 83000.00, "2019-12-05", depts["Data Science"], True),
-                ("Asif Iqbal", "asif.iqbal@company.com", "01712000019", 58000.00, "2023-02-14", depts["Public Relations"], True),
-                ("Dilara Begum", "dilara.begum@company.com", "01712000020", 69000.00, "2020-07-19", depts["Quality Assurance"], True),
-                ("Mahbubur Rahman", "mahbubur.rahman@company.com", "01712000021", 105000.00, "2016-03-25", depts["Cloud Infrastructure"], True),
-                ("Nasrin Sultana", "nasrin.sultana@company.com", "01712000022", 60000.00, "2022-01-10", depts["Technical Support"], True),
-                ("Tareq Aziz", "tareq.aziz@company.com", "01712000023", 74000.00, "2020-10-18", depts["Product Management"], True),
-                ("Laila Akhter", "laila.akhter@company.com", "01712000024", 82000.00, "2019-05-15", depts["Internal Audit"], True),
-                ("Mustafizur Rahman", "mustafizur.rahman@company.com", "01712000025", 65000.00, "2021-12-01", depts["Supply Chain"], True)
-            ])
-            
-            conn.commit()
-            
-            # Get employee IDs
-            cursor.execute("SELECT employee_id, employee_name FROM employees;")
-            emps = {row[1]: row[0] for row in cursor.fetchall()}
-            
-            print("Seeding mock projects...")
-            cursor.executemany("""
-                INSERT INTO projects (project_name, start_date, end_date, budget)
-                VALUES (%s, %s, %s, %s)
-            """, [
-                ("Smart Hospital Management", "2024-01-01", "2024-12-31", 550000.00),
-                ("E-Commerce ERP System", "2024-02-14", "2025-02-14", 720000.00),
-                ("AI Recruitment Assistant", "2024-03-01", "2025-01-31", 410000.00),
-                ("Banking Security Upgrade", "2023-11-10", "2024-10-30", 880000.00),
-                ("Digital Learning Hub", "2024-04-20", "2025-04-19", 360000.00),
-                ("Cloud Migration Project", "2024-05-05", "2025-05-05", 960000.00),
-                ("Retail POS Modernization", "2023-12-01", "2024-09-30", 290000.00),
-                ("IoT Smart Farming Platform", "2024-06-01", "2025-06-01", 610000.00),
-                ("Logistics Tracking System", "2024-01-18", "2024-11-18", 470000.00),
-                ("Customer Loyalty App", "2024-02-25", "2025-01-20", 315000.00),
-                ("HR Self-Service Portal", "2024-03-12", "2025-03-11", 285000.00),
-                ("Data Analytics Warehouse", "2024-04-01", "2025-03-31", 520000.00),
-                ("Smart City Dashboard", "2024-05-15", "2025-04-15", 450000.00),
-                ("Automated Quality Control", "2024-06-20", "2025-05-20", 380000.00),
-                ("Virtual Classroom Platform", "2024-07-01", "2025-06-30", 295000.00),
-                ("Fleet Management System", "2024-08-10", "2025-07-10", 510000.00),
-                ("Cyber Security Audit", "2024-09-01", "2025-02-28", 175000.00),
-                ("E-Learning Content Library", "2024-10-15", "2025-09-15", 220000.00),
-                ("Real-time Inventory Portal", "2024-11-01", "2025-10-31", 630000.00),
-                ("CRM Integration API", "2024-12-05", "2025-06-05", 140000.00),
-                ("Employee Wellness App", "2025-01-10", "2025-12-10", 95000.00),
-                ("Blockchain Ledger Proof", "2025-02-01", "2025-11-30", 320000.00),
-                ("AI Customer Agent chatbot", "2025-03-01", "2025-08-31", 180000.00),
-                ("Content Delivery Network", "2025-04-01", "2026-03-31", 750000.00),
-                ("Automated Billing Engine", "2025-05-10", "2026-04-10", 260000.00)
-            ])
-            
-            conn.commit()
-            
-            # Get project IDs
-            cursor.execute("SELECT project_id, project_name FROM projects;")
-            projs = {row[1]: row[0] for row in cursor.fetchall()}
-            
-            print("Seeding mock employee-project assignments...")
-            cursor.executemany("""
-                INSERT INTO employee_projects (employee_id, project_id, assigned_date)
-                VALUES (%s, %s, %s)
-            """, [
-                (emps["Tanvir Ahmed"], projs["Smart Hospital Management"], "2024-01-15"),
-                (emps["Mehjabin Noor"], projs["Smart Hospital Management"], "2024-01-20"),
-                (emps["Sabbir Hasan"], projs["E-Commerce ERP System"], "2024-02-20"),
-                (emps["Farzana Kabir"], projs["AI Recruitment Assistant"], "2024-03-10"),
-                (emps["Rakib Chowdhury"], projs["Banking Security Upgrade"], "2023-11-20"),
-                (emps["Nusrat Jahan"], projs["Digital Learning Hub"], "2024-04-25"),
-                (emps["Imran Hossain"], projs["Cloud Migration Project"], "2024-05-15"),
-                (emps["Tania Sultana"], projs["Retail POS Modernization"], "2023-12-10"),
-                (emps["Mahmudul Karim"], projs["IoT Smart Farming Platform"], "2024-06-10"),
-                (emps["Rifat Ara"], projs["Logistics Tracking System"], "2024-01-25"),
-                (emps["Zamilur Rahman"], projs["Customer Loyalty App"], "2024-03-01"),
-                (emps["Sadia Islam"], projs["HR Self-Service Portal"], "2024-03-20"),
-                (emps["Arifur Rahman"], projs["Data Analytics Warehouse"], "2024-04-10"),
-                (emps["Jesmin Akter"], projs["Smart City Dashboard"], "2024-05-20"),
-                (emps["Kamrul Hasan"], projs["Automated Quality Control"], "2024-07-01"),
-                (emps["Tasnim Jahan"], projs["Virtual Classroom Platform"], "2024-07-15"),
-                (emps["Monirul Islam"], projs["Fleet Management System"], "2024-08-20"),
-                (emps["Sharmin Sultana"], projs["Cyber Security Audit"], "2024-09-05"),
-                (emps["Asif Iqbal"], projs["E-Learning Content Library"], "2024-10-20"),
-                (emps["Dilara Begum"], projs["Real-time Inventory Portal"], "2024-11-10"),
-                (emps["Mahbubur Rahman"], projs["CRM Integration API"], "2024-12-15"),
-                (emps["Nasrin Sultana"], projs["Employee Wellness App"], "2025-01-15"),
-                (emps["Tareq Aziz"], projs["Blockchain Ledger Proof"], "2025-02-10"),
-                (emps["Laila Akhter"], projs["AI Customer Agent chatbot"], "2025-03-10"),
-                (emps["Mustafizur Rahman"], projs["Content Delivery Network"], "2025-04-10")
-            ])
-            
+            print("Seeding employees...")
+            cursor.execute("""
+                INSERT INTO employees 
+                (employee_name, email, phone, salary, joining_date, department_id, status)
+                VALUES
+                ('Tanvir Hasan', 'tanvir.hasan@grameenit.com', '01711223344', 55000.00, '2022-03-15', 2, TRUE),
+                ('Nusrat Jahan', 'nusrat.jahan@banglatech.com', '01822334455', 62000.00, '2021-11-20', 4, TRUE),
+                ('Mehedi Rahman', 'mehedi.rahman@robi.com', '01633445566', 48000.00, '2023-01-10', 5, TRUE),
+                ('Sadia Islam', 'sadia.islam@waltonbd.com', '01944556677', 70000.00, '2020-06-18', 1, TRUE),
+                ('Rakib Ahmed', 'rakib.ahmed@brainstation23.com', '01555667788', 88000.00, '2019-09-25', 16, TRUE),
+                ('Farzana Akter', 'farzana.akter@pathao.com', '01766778899', 51000.00, '2022-07-30', 9, TRUE),
+                ('Jubayer Hossain', 'jubayer.hossain@beximco.com', '01877889900', 46000.00, '2021-12-11', 3, TRUE),
+                ('Sharmin Sultana', 'sharmin.sultana@daraz.com', '01988990011', 75000.00, '2018-05-22', 12, TRUE),
+                ('Sabbir Khan', 'sabbir.khan@pridesys.com', '01699001122', 53000.00, '2023-02-14', 14, TRUE),
+                ('Tanjina Noor', 'tanjina.noor@sslwireless.com', '01710112233', 69000.00, '2020-08-08', 13, TRUE),
+                ('Mahmudul Hasan', 'mahmudul.hasan@shopup.com', '01821223344', 72000.00, '2021-04-17', 18, TRUE),
+                ('Nafisa Karim', 'nafisa.karim@technohaven.com', '01932334455', 58000.00, '2022-09-19', 20, TRUE),
+                ('Raihan Chowdhury', 'raihan.chowdhury@bjitgroup.com', '01643445566', 93000.00, '2019-01-05', 7, TRUE),
+                ('Israt Jahan', 'israt.jahan@datasoft-bd.com', '01754556677', 61000.00, '2020-12-13', 6, TRUE),
+                ('Fahim Ahmed', 'fahim.ahmed@grameenphone.com', '01865667788', 66000.00, '2021-03-28', 15, TRUE),
+                ('Mariam Sultana', 'mariam.sultana@pickaboo.com', '01976778899', 47000.00, '2023-06-01', 22, TRUE),
+                ('Arif Rahman', 'arif.rahman@wedevs.com', '01587889900', 81000.00, '2018-10-10', 2, TRUE),
+                ('Tasnia Ahmed', 'tasnia.ahmed@brainstation23.com', '01798990011', 59000.00, '2022-05-05', 24, TRUE),
+                ('Shakib Hossain', 'shakib.hossain@kodeeo.com', '01809001122', 54000.00, '2021-08-23', 10, TRUE),
+                ('Rifat Karim', 'rifat.karim@revesoft.com', '01910112233', 86000.00, '2019-11-14', 16, TRUE),
+                ('Anika Noor', 'anika.noor@sheba.xyz', '01621223344', 52000.00, '2020-04-21', 19, TRUE),
+                ('Mizanur Rahman', 'mizanur.rahman@agami.com', '01732334455', 64000.00, '2021-07-09', 11, TRUE),
+                ('Afsana Mim', 'afsana.mim@nagad.com', '01843445566', 68000.00, '2022-02-12', 8, TRUE),
+                ('Towhid Islam', 'towhid.islam@10minuteschool.com', '01954556677', 57000.00, '2023-03-18', 23, TRUE),
+                ('Jannatul Ferdous', 'jannatul.ferdous@bdjobs.com', '01565667788', 49000.00, '2020-10-27', 25, TRUE);
+            """)
+
+            print("Seeding projects...")
+            cursor.execute("""
+                INSERT INTO projects
+                (project_name, start_date, end_date, budget)
+                VALUES
+                ('Smart Payroll System', '2024-01-10', '2024-10-15', 1500000.00),
+                ('AI Customer Chatbot', '2023-07-01', '2024-05-30', 2200000.00),
+                ('E-Commerce Mobile App', '2024-03-20', '2025-01-10', 3400000.00),
+                ('Cloud Migration Project', '2023-09-12', '2024-11-25', 4100000.00),
+                ('Cyber Security Audit', '2024-02-01', '2024-06-15', 900000.00),
+                ('HR Automation Platform', '2023-11-11', '2024-08-20', 1700000.00),
+                ('Digital Banking Solution', '2024-04-18', '2025-02-28', 5200000.00),
+                ('Warehouse Management System', '2023-05-05', '2024-03-10', 2600000.00),
+                ('Smart Attendance Tracker', '2024-01-25', '2024-09-01', 1200000.00),
+                ('Business Intelligence Dashboard', '2023-12-15', '2024-10-10', 3000000.00),
+                ('Online Learning Platform', '2024-02-20', '2025-01-05', 2800000.00),
+                ('POS System Upgrade', '2023-06-14', '2024-04-17', 1450000.00),
+                ('Fleet Tracking System', '2024-05-01', '2025-02-20', 3700000.00),
+                ('IoT Energy Monitoring', '2023-08-08', '2024-07-07', 2500000.00),
+                ('Corporate Website Redesign', '2024-03-03', '2024-09-12', 800000.00),
+                ('ERP Integration', '2023-10-22', '2025-03-30', 6200000.00),
+                ('Call Center Optimization', '2024-01-17', '2024-12-19', 1950000.00),
+                ('AI Fraud Detection', '2024-04-04', '2025-04-04', 4800000.00),
+                ('Data Warehouse Development', '2023-07-21', '2024-11-14', 3500000.00),
+                ('Microservices Architecture', '2024-02-11', '2025-05-25', 4100000.00),
+                ('Mobile Banking App', '2023-09-29', '2025-01-15', 5600000.00),
+                ('Inventory Prediction System', '2024-03-09', '2024-12-28', 2400000.00),
+                ('Customer Feedback Analyzer', '2024-05-12', '2025-02-01', 2100000.00),
+                ('Virtual Meeting Platform', '2023-11-19', '2024-09-30', 2750000.00),
+                ('Digital Document Archive', '2024-01-08', '2024-10-05', 1600000.00);
+            """)
+
+            print("Seeding employee-project assignments...")
+            cursor.execute("""
+                INSERT INTO employee_projects
+                (employee_id, project_id, assigned_date)
+                VALUES
+                (5, 2, '2024-01-15'),
+                (1, 1, '2024-02-01'),
+                (3, 5, '2024-02-10'),
+                (7, 4, '2024-03-05'),
+                (10, 10, '2024-03-12'),
+                (14, 6, '2024-01-22'),
+                (20, 18, '2024-04-14'),
+                (2, 15, '2024-02-28'),
+                (9, 9, '2024-01-18'),
+                (12, 3, '2024-03-30'),
+                (17, 20, '2024-04-11'),
+                (6, 17, '2024-02-05'),
+                (4, 8, '2024-01-25'),
+                (8, 19, '2024-03-16'),
+                (13, 5, '2024-04-01'),
+                (11, 7, '2024-02-13'),
+                (18, 11, '2024-03-22'),
+                (21, 14, '2024-01-27'),
+                (16, 24, '2024-04-07'),
+                (15, 13, '2024-03-18'),
+                (22, 16, '2024-02-16'),
+                (19, 22, '2024-04-20'),
+                (23, 21, '2024-01-31'),
+                (24, 23, '2024-05-02'),
+                (25, 25, '2024-03-09');
+            """)
             conn.commit()
             print("Seeding completed successfully!")
             

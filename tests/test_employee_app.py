@@ -29,10 +29,10 @@ class TestEmployeeManagementSystem(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         
         html = response.data.decode('utf-8')
-        self.assertIn("Tanvir Ahmed", html)
-        self.assertIn("tanvir.ahmed@company.com", html)
-        self.assertIn("Mehjabin Noor", html)
-        self.assertIn("Engineering", html)
+        self.assertIn("Tanvir Hasan", html)
+        self.assertIn("tanvir.hasan@grameenit.com", html)
+        self.assertIn("Nusrat Jahan", html)
+        self.assertIn("Software Development", html)
 
     def test_departments_list(self):
         """Test departments list view contains seeded entries"""
@@ -40,7 +40,7 @@ class TestEmployeeManagementSystem(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         
         html = response.data.decode('utf-8')
-        self.assertIn("Engineering", html)
+        self.assertIn("AI Engineering", html)
         self.assertIn("Marketing", html)
         self.assertIn("Dhaka", html)
 
@@ -50,8 +50,8 @@ class TestEmployeeManagementSystem(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         
         html = response.data.decode('utf-8')
-        self.assertIn("Smart Hospital Management", html)
-        self.assertIn("E-Commerce ERP System", html)
+        self.assertIn("Smart Payroll System", html)
+        self.assertIn("AI Customer Chatbot", html)
 
     def test_add_and_delete_employee(self):
         """Test complete CRUD lifecycle by adding and then removing an employee record"""
