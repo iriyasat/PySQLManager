@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Server Dashboard | PySQLManager{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+  <div class="glass-card-header">
+    <h2>🖥️ Server Information</h2>
+  </div>
+  <div class="form-row" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+    <div style="background: rgba(255, 255, 255, 0.02); padding: 16px; border-radius: 8px; border: 1px solid var(--panel-border);">
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px;">MySQL Version</div>
+      <div style="font-size: 1.2rem; font-weight: 600; color: var(--secondary-accent);">{{ server_info.version }}</div>
+    </div>
+    
+    <div style="background: rgba(255, 255, 255, 0.02); padding: 16px; border-radius: 8px; border: 1px solid var(--panel-border);">
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px;">Connected User</div>
+      <div style="font-size: 1.2rem; font-weight: 600; color: var(--primary-accent);">{{ server_info.user }}</div>
+    </div>
+    
+    <div style="background: rgba(255, 255, 255, 0.02); padding: 16px; border-radius: 8px; border: 1px solid var(--panel-border);">
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px;">Server Port</div>
+      <div style="font-size: 1.2rem; font-weight: 600; color: var(--text-main);">{{ current_port }}</div>
+    </div>
+    
+    <div style="background: rgba(255, 255, 255, 0.02); padding: 16px; border-radius: 8px; border: 1px solid var(--panel-border);">
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px;">Uptime</div>
+      <div style="font-size: 1.2rem; font-weight: 600; color: var(--success);">{{ server_info.uptime }}</div>
+    </div>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+  <!-- Databases List -->
+  <div class="glass-card">
+    <div class="glass-card-header">
+      <h2>📁 Databases List</h2>
+      <span class="tag tag-primary">{{ databases|length }} databases</span>
+    </div>
+    
+    <div class="table-container">
+      <table class="custom-table" aria-label="Databases list">
+        <thead>
+          <tr>
+            <th>Database</th>
+            <th>Collation</th>
+            <th>Charset</th>
+            <th>Size (MB)</th>
+            <th style="text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for db in databases %}
+            <tr>
+              <td style="font-weight: 600;">
+                <a href="{{ url_for('db_bp.view_db', db_name=db.Database) }}">📁 {{ db.Database }}</a>
+              </td>
+              <td><span class="tag">{{ db.Collation }}</span></td>
+              <td><span class="tag">{{ db.Charset }}</span></td>
+              <td>{{ db.SizeMB }} MB</td>
+              <td style="text-align: right;">
+                <div style="display: inline-flex; gap: 8px;">
+                  <a href="{{ url_for('db_bp.view_db', db_name=db.Database) }}" class="btn btn-secondary btn-sm" style="padding: 4px 8px;">Structure</a>
+                  {% if db.Database not in ['information_schema', 'mysql', 'performance_schema', 'sys'] %}
+                    <form action="{{ url_for('db_bp.drop_db', db_name=db.Database) }}" method="POST" style="display: inline;">
+                      <button type="submit" class="btn btn-danger btn-sm btn-confirm-delete" style="padding: 4px 8px;">Drop</button>
+                    </form>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Create Database Form -->
+  <div class="glass-card" style="height: fit-content;">
+    <div class="glass-card-header">
+      <h2>🆕 Create Database</h2>
+    </div>
+    <form action="{{ url_for('db_bp.create_db') }}" method="POST">
+      <div class="form-group">
+        <label for="db_name">Database Name</label>
+        <input type="text" id="db_name" name="db_name" class="form-control" placeholder="e.g. my_new_db" required autocomplete="off">
+      </div>
+      
+      <div class="form-group">
+        <label for="collation">Collation</label>
+        <select id="collation" name="collation" class="form-control">
+          <option value="utf8mb4_general_ci">utf8mb4_general_ci (Recommended)</option>
+          <option value="utf8mb4_unicode_ci">utf8mb4_unicode_ci</option>
+          <option value="utf8_general_ci">utf8_general_ci</option>
+          <option value="latin1_swedish_ci">latin1_swedish_ci</option>
+        </select>
+      </div>
+      
+      <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+        ⚙️ Create Database
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

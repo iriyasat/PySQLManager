@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}Structure: {{ table_name }} | PySQLManager{% endblock %}
+
+{% block content %}
+<!-- Column Schema List -->
+<div class="glass-card">
+  <div class="glass-card-header">
+    <h2>📐 Column Schema Structure</h2>
+  </div>
+  
+  <div class="table-container">
+    <table class="custom-table" aria-label="Column schema list">
+      <thead>
+        <tr>
+          <th>Column</th>
+          <th>Type</th>
+          <th>Collation</th>
+          <th>Null</th>
+          <th>Key</th>
+          <th>Default</th>
+          <th>Extra</th>
+          <th style="text-align: right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for col in columns %}
+          <tr>
+            <td style="font-weight: 600; color: var(--text-main);">
+              <code>{{ col.Field }}</code>
+            </td>
+            <td><span class="tag tag-primary">{{ col.Type }}</span></td>
+            <td><span class="tag">{{ col.Collation if col.Collation is not none else '--' }}</span></td>
+            <td>
+              <span class="tag {% if col.Null == 'YES' %}tag-success{% endif %}">
+                {{ col.Null }}
+              </span>
+            </td>
+            <td><span class="tag" style="background: rgba(190, 24, 93, 0.15); color: hsl(330, 85%, 75%);">{{ col.Key if col.Key else '--' }}</span></td>
+            <td>
+              {% if col.Default is none %}
+                <span style="font-style: italic; color: var(--text-muted);">NULL</span>
+              {% else %}
+                <code>{{ col.Default }}</code>
+              {% endif %}
+            </td>
+            <td><code>{{ col.Extra if col.Extra else '--' }}</code></td>
+            <td style="text-align: right;">
+              {% if columns|length > 1 %}
+                <form action="{{ url_for('table_bp.drop_column', db_name=db_name, table_name=table_name, col_name=col.Field) }}" method="POST" style="display: inline;">
+                  <button type="submit" class="btn btn-danger btn-sm btn-confirm-delete" style="padding: 4px 8px;">Drop</button>
+                </form>
+              {% else %}
+                <span class="tag" style="font-style: italic;">Locked</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Column & Foreign Keys Grid Layout -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+  <!-- Add Column Section -->
+  <div class="glass-card">
+    <div class="glass-card-header">
+      <h2>➕ Add Column</h2>
+    </div>
+    
+    <form action="{{ url_for('table_bp.add_column', db_name=db_name, table_name=table_name) }}" method="POST">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="col_name">Column Name</label>
+          <input type="text" id="col_name" name="col_name" class="form-control" placeholder="e.g. status" required autocomplete="off">
+        </div>
+        
+        <div class="form-group">
+          <label for="col_type">Type</label>
+          <select id="col_type" name="col_type" class="form-control">
+            <option value="VARCHAR">VARCHAR</option>
+            <option value="INT">INT</option>
+            <option value="TEXT">TEXT</option>
+            <option value="DATE">DATE</option>
+            <option value="DATETIME">DATETIME</option>
+            <option value="TIMESTAMP">TIMESTAMP</option>
+            <option value="DECIMAL">DECIMAL</option>
+            <option value="TINYINT">TINYINT</option>
+            <option value="BOOLEAN">BOOLEAN</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-row" style="margin-top: 10px;">
+        <div class="form-group">
+          <label for="col_length">Length/Values</label>
+          <input type="text" id="col_length" name="col_length" class="form-control" placeholder="e.g. 255" autocomplete="off">
+        </div>
+        
+        <div class="form-group">
+          <label for="col_default">Default</label>
+          <select id="col_default" name="col_default" class="form-control default-select" data-index="addcol">
+            <option value="NONE">None</option>
+            <option value="USER_DEFINED">As defined:</option>
+            <option value="NULL">NULL</option>
+            <option value="CURRENT_TIMESTAMP">CURRENT_TIMESTAMP</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-group" style="margin-top: 10px;">
+        <label for="default_val_addcol">Default Value</label>
+        <input type="text" id="default_val_addcol" name="col_default_value" class="form-control" placeholder="Value" disabled autocomplete="off">
+      </div>
+      
+      <div class="form-row" style="margin-top: 10px;">
+        <div class="form-group">
+          <label for="col_position">Position</label>
+          <select id="col_position" name="col_position" class="form-control" onchange="document.getElementById('after-col-group').style.display = (this.value == 'AFTER' ? 'block' : 'none');">
+            <option value="LAST">At end of table</option>
+            <option value="FIRST">At beginning of table</option>
+            <option value="AFTER">After column...</option>
+          </select>
+        </div>
+        
+        <div class="form-group" id="after-col-group" style="display: none;">
+          <label for="col_pos_after">After Column</label>
+          <select id="col_pos_after" name="col_pos_after" class="form-control">
+            {% for col in columns %}
+              <option value="{{ col.Field }}">{{ col.Field }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      
+      <div style="margin-top: 15px; display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="col_null" name="col_null" checked>
+        <label for="col_null">Nullable Column</label>
+      </div>
+      
+      <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
+        ⚙️ Add Column
+      </button>
+    </form>
+  </div>
+
+  <!-- Relations & Keys View -->
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    <!-- Indexes list -->
+    <div class="glass-card" style="margin-bottom: 0;">
+      <div class="glass-card-header">
+        <h2>🔑 Indexes</h2>
+      </div>
+      <div class="table-container" style="max-height: 200px; overflow-y: auto;">
+        <table class="custom-table" aria-label="Table indexes">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Column</th>
+              <th>Unique</th>
+              <th>Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for idx in indexes %}
+              <tr>
+                <td><code>{{ idx.Key_name }}</code></td>
+                <td><code>{{ idx.Column_name }}</code></td>
+                <td>{{ 'YES' if idx.Non_unique == 0 else 'NO' }}</td>
+                <td><span class="tag">{{ idx.Index_type }}</span></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Foreign Keys Relationship Manager -->
+    <div class="glass-card" style="margin-bottom: 0;">
+      <div class="glass-card-header">
+        <h2>⛓️ Relationship View (Foreign Keys)</h2>
+      </div>
+      
+      {% if foreign_keys %}
+        <div class="table-container" style="margin-bottom: 20px;">
+          <table class="custom-table" aria-label="Foreign keys list">
+            <thead>
+              <tr>
+                <th>Constraint</th>
+                <th>Column</th>
+                <th>References</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for fk in foreign_keys %}
+                <tr>
+                  <td><code>{{ fk.CONSTRAINT_NAME }}</code></td>
+                  <td><code>{{ fk.COLUMN_NAME }}</code></td>
+                  <td><code>{{ fk.REFERENCED_TABLE_NAME }}({{ fk.REFERENCED_COLUMN_NAME }})</code></td>
+                  <td style="text-align: right;">
+                    <form action="{{ url_for('table_bp.drop_foreign_key', db_name=db_name, table_name=table_name, fk_name=fk.CONSTRAINT_NAME) }}" method="POST">
+                      <button type="submit" class="btn btn-danger btn-sm btn-confirm-delete" style="padding: 2px 6px; font-size: 0.75rem;">Drop</button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+
+      <!-- Add Foreign Key Form -->
+      <form action="{{ url_for('table_bp.add_foreign_key', db_name=db_name, table_name=table_name) }}" method="POST">
+        <div class="form-group">
+          <label for="fk_constraint">Constraint Name (Optional)</label>
+          <input type="text" id="fk_constraint" name="constraint_name" class="form-control" placeholder="Auto-generated if empty" autocomplete="off">
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fk_col">Local Column</label>
+            <select id="fk_col" name="column_name" class="form-control" required>
+              {% for col in columns %}
+                <option value="{{ col.Field }}">{{ col.Field }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="fk_ref_tbl">Referenced Table</label>
+            <select id="fk_ref_tbl" name="ref_table" class="form-control" required>
+              {% for t in available_tables %}
+                {% if t != table_name %}
+                  <option value="{{ t }}">{{ t }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-row" style="margin-top: 10px;">
+          <div class="form-group">
+            <label for="fk_ref_col">Referenced Column</label>
+            <input type="text" id="fk_ref_col" name="ref_column" class="form-control" placeholder="e.g. id" required autocomplete="off">
+          </div>
+          
+          <div class="form-group">
+            <label for="on_delete">ON DELETE</label>
+            <select id="on_delete" name="on_delete" class="form-control">
+              <option value="RESTRICT">RESTRICT</option>
+              <option value="CASCADE">CASCADE</option>
+              <option value="SET NULL">SET NULL</option>
+              <option value="NO ACTION">NO ACTION</option>
+            </select>
+          </div>
+        </div>
+        
+        <button type="submit" class="btn btn-secondary" style="width: 100%; margin-top: 15px;">
+          ⛓️ Add Foreign Key constraint
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

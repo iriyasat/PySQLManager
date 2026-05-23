@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Create Table | PySQLManager{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+  <div class="glass-card-header">
+    <h2>🆕 Define Columns for new table</h2>
+    <a href="{{ url_for('db_bp.view_db', db_name=db_name) }}" class="btn btn-secondary btn-sm">⬅️ Back to Tables</a>
+  </div>
+  
+  <form action="{{ url_for('table_bp.create_table', db_name=db_name) }}" method="POST" id="create-table-form">
+    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+      <div class="form-group">
+        <label for="table_name">Table Name</label>
+        <input type="text" id="table_name" name="table_name" class="form-control" value="{{ request.args.get('table_name', '') }}" required autocomplete="off">
+      </div>
+      
+      <div class="form-group">
+        <label for="engine">Storage Engine</label>
+        <select id="engine" name="engine" class="form-control">
+          <option value="InnoDB">InnoDB (Recommended)</option>
+          <option value="MyISAM">MyISAM</option>
+          <option value="MEMORY">MEMORY</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="collation">Collation</label>
+        <select id="collation" name="collation" class="form-control">
+          <option value="utf8mb4_general_ci">utf8mb4_general_ci</option>
+          <option value="utf8mb4_unicode_ci">utf8mb4_unicode_ci</option>
+          <option value="utf8_general_ci">utf8_general_ci</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Hidden field count -->
+    <input type="hidden" name="num_fields" id="num-fields-hidden" value="{{ num_fields }}">
+
+    <!-- Headers -->
+    <div class="schema-column-headers">
+      <div>Name</div>
+      <div>Type</div>
+      <div>Length/Values</div>
+      <div>Default</div>
+      <div>Default Value</div>
+      <div>Collation</div>
+      <div>Attribute</div>
+      <div style="text-align: center;">Settings</div>
+    </div>
+
+    <!-- Columns Container -->
+    <div id="schema-fields-container">
+      {% for i in range(num_fields) %}
+        <div class="schema-column-row">
+          <div>
+            <!-- First column standard key helpers (id, etc.) -->
+            <input type="text" name="field_name_{{ i }}" placeholder="Column Name" class="form-control" 
+                   value="{% if i == 0 %}id{% endif %}" required autocomplete="off">
+          </div>
+          <div>
+            <select name="field_type_{{ i }}" class="form-control">
+              <option value="INT" {% if i == 0 %}selected{% endif %}>INT</option>
+              <option value="VARCHAR" {% if i > 0 %}selected{% endif %}>VARCHAR</option>
+              <option value="TEXT">TEXT</option>
+              <option value="DATE">DATE</option>
+              <option value="DATETIME">DATETIME</option>
+              <option value="TIMESTAMP">TIMESTAMP</option>
+              <option value="DECIMAL">DECIMAL</option>
+              <option value="TINYINT">TINYINT</option>
+              <option value="DOUBLE">DOUBLE</option>
+              <option value="BOOLEAN">BOOLEAN</option>
+            </select>
+          </div>
+          <div>
+            <input type="text" name="field_length_{{ i }}" placeholder="Length" class="form-control" 
+                   value="{% if i == 0 %}{% else %}255{% endif %}" autocomplete="off">
+          </div>
+          <div>
+            <select name="field_default_{{ i }}" class="form-control default-select" data-index="{{ i }}">
+              <option value="NONE">None</option>
+              <option value="USER_DEFINED">As defined:</option>
+              <option value="NULL">NULL</option>
+              <option value="CURRENT_TIMESTAMP">CURRENT_TIMESTAMP</option>
+            </select>
+          </div>
+          <div>
+            <input type="text" name="field_default_value_{{ i }}" id="default_val_{{ i }}" placeholder="Value" class="form-control" disabled autocomplete="off">
+          </div>
+          <div>
+            <select name="field_collation_{{ i }}" class="form-control">
+              <option value="utf8mb4_general_ci">utf8mb4_general_ci</option>
+              <option value="utf8mb4_unicode_ci">utf8mb4_unicode_ci</option>
+              <option value="utf8_general_ci">utf8_general_ci</option>
+            </select>
+          </div>
+          <div>
+            <select name="field_attribute_{{ i }}" class="form-control">
+              <option value="">--</option>
+              <option value="UNSIGNED" {% if i == 0 %}selected{% endif %}>UNSIGNED</option>
+              <option value="ON UPDATE CURRENT_TIMESTAMP">ON UPDATE CURRENT_TIMESTAMP</option>
+            </select>
+          </div>
+          <div style="display: flex; gap: 8px; justify-content: center; align-items: center;">
+            <input type="checkbox" name="field_null_{{ i }}" {% if i > 0 %}checked{% endif %}> Null
+            <select name="field_index_{{ i }}" class="form-control" style="width: 80px; padding: 4px;">
+              <option value="">None</option>
+              <option value="PRIMARY" {% if i == 0 %}selected{% endif %}>PRIMARY</option>
+              <option value="UNIQUE">UNIQUE</option>
+              <option value="INDEX">INDEX</option>
+            </select>
+            <input type="checkbox" name="field_ai_{{ i }}" {% if i == 0 %}checked{% endif %}> A_I
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px;">
+      <button type="button" class="btn btn-secondary" id="add-field-row-btn" data-count="{{ num_fields }}">
+        ➕ Add Column Field
+      </button>
+      
+      <button type="submit" class="btn btn-primary">
+        💾 Save Table structure
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

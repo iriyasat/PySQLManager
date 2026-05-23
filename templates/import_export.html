@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Import & Export: {{ db_name }} | PySQLManager{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+  <!-- Export Panel -->
+  <div class="glass-card">
+    <div class="glass-card-header">
+      <h2>📤 SQL Export (Backup)</h2>
+    </div>
+    
+    <form action="{{ url_for('data_bp.export_db', db_name=db_name) }}" method="POST">
+      <div class="form-group">
+        <label style="font-weight: 600; margin-bottom: 6px;">Select Tables to Export</label>
+        
+        <div style="display: flex; gap: 12px; margin-bottom: 12px; font-size: 0.85rem;">
+          <input type="checkbox" id="check-all-rows" checked>
+          <label for="check-all-rows">Toggle All Tables</label>
+        </div>
+        
+        <div style="max-height: 220px; overflow-y: auto; background: rgba(0, 0, 0, 0.15); border: 1px solid var(--panel-border); border-radius: var(--border-radius); padding: 12px; display: flex; flex-direction: column; gap: 8px;">
+          {% for tbl in tables %}
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" name="tables" value="{{ tbl }}" id="tbl_check_{{ tbl }}" class="row-checkbox" checked>
+              <label for="tbl_check_{{ tbl }}" style="cursor: pointer;">📄 {{ tbl }}</label>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      
+      <div class="form-group" style="margin-top: 20px;">
+        <label style="font-weight: 600; margin-bottom: 6px;">Export Options</label>
+        
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <input type="radio" id="exp_type_both" name="export_type" value="structure_data" checked>
+            <label for="exp_type_both" style="cursor: pointer;">Structure and data (Recommended)</label>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <input type="radio" id="exp_type_struct" name="export_type" value="structure_only">
+            <label for="exp_type_struct" style="cursor: pointer;">Structure only</label>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <input type="radio" id="exp_type_data" name="export_type" value="data_only">
+            <label for="exp_type_data" style="cursor: pointer;">Data only</label>
+          </div>
+        </div>
+      </div>
+      
+      <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;">
+        📤 Download SQL Export
+      </button>
+    </form>
+  </div>
+
+  <!-- Import Panel -->
+  <div class="glass-card" style="height: fit-content;">
+    <div class="glass-card-header">
+      <h2>📥 SQL Import (Restore)</h2>
+    </div>
+    
+    <p style="font-size: 0.9rem; color: var(--text-sub); margin-bottom: 24px; line-height: 1.5;">
+      Upload a SQL file (<code>.sql</code>) containing queries or backups. The system will parse the script and execute statements sequentially under the <code>{{ db_name }}</code> database context.
+    </p>
+    
+    <form action="{{ url_for('data_bp.import_db', db_name=db_name) }}" method="POST" enctype="multipart/form-data">
+      <div class="form-group">
+        <label for="sql_file" style="font-weight: 600;">Select SQL Backup File</label>
+        
+        <!-- Standard file upload styled cleanly -->
+        <input type="file" id="sql_file" name="sql_file" class="form-control" accept=".sql" required 
+               style="padding: 10px; cursor: pointer;">
+      </div>
+      
+      <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px; display: flex; flex-direction: column; gap: 4px;">
+        <span>⚠️ Note: Exceedingly large SQL files can cause execution timeout on slow networks.</span>
+        <span>⚠️ Statements will stop executing on the first encountered MySQL error.</span>
+      </div>
+      
+      <button type="submit" class="btn btn-secondary" style="width: 100%;">
+        📥 Upload & Import SQL File
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

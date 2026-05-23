@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}{{ db_name }} Dashboard | PySQLManager{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+  <!-- Tables list inside database -->
+  <div class="glass-card">
+    <div class="glass-card-header">
+      <h2>📐 Tables in database: <code>{{ db_name }}</code></h2>
+      <span class="tag tag-primary">{{ total_tables }} tables</span>
+    </div>
+    
+    {% if tables %}
+      <div class="table-container">
+        <table class="custom-table" aria-label="Tables in {{ db_name }}">
+          <thead>
+            <tr>
+              <th>Table</th>
+              <th>Rows</th>
+              <th>Engine</th>
+              <th>Collation</th>
+              <th>Size (KB)</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tbl in tables %}
+              <tr>
+                <td style="font-weight: 600;">
+                  <a href="{{ url_for('table_bp.browse_table', db_name=db_name, table_name=tbl.Name) }}">📄 {{ tbl.Name }}</a>
+                </td>
+                <td><span class="tag tag-success">{{ tbl.Rows if tbl.Rows is not none else 0 }}</span></td>
+                <td><span class="tag">{{ tbl.Engine }}</span></td>
+                <td><span class="tag">{{ tbl.Collation }}</span></td>
+                <td>{{ tbl.SizeKB }} KB</td>
+                <td style="text-align: right;">
+                  <div style="display: inline-flex; gap: 6px;">
+                    <a href="{{ url_for('table_bp.browse_table', db_name=db_name, table_name=tbl.Name) }}" class="btn btn-secondary btn-sm" style="padding: 4px 8px;">Browse</a>
+                    <a href="{{ url_for('table_bp.table_structure', db_name=db_name, table_name=tbl.Name) }}" class="btn btn-secondary btn-sm" style="padding: 4px 8px;">Structure</a>
+                    <a href="{{ url_for('table_bp.table_operations', db_name=db_name, table_name=tbl.Name) }}" class="btn btn-secondary btn-sm" style="padding: 4px 8px;">Operations</a>
+                    <form action="{{ url_for('table_bp.table_operations', db_name=db_name, table_name=tbl.Name) }}" method="POST" style="display: inline;">
+                      <input type="hidden" name="action" value="drop">
+                      <button type="submit" class="btn btn-danger btn-sm btn-confirm-delete" style="padding: 4px 8px;">Drop</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr style="font-weight: 600; background: rgba(255, 255, 255, 0.02);">
+              <td>Total: {{ total_tables }} tables</td>
+              <td>{{ total_rows }} rows</td>
+              <td>--</td>
+              <td>--</td>
+              <td>{{ "%.2f"|format(total_size) }} KB</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    {% else %}
+      <div class="alert alert-info">
+        No tables found in this database. Create one below to get started!
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Create Table Panel -->
+  <div class="glass-card" style="height: fit-content;">
+    <div class="glass-card-header">
+      <h2>🆕 Create Table</h2>
+    </div>
+    <form action="{{ url_for('table_bp.create_table', db_name=db_name) }}" method="GET">
+      <div class="form-group">
+        <label for="table_name">Table Name</label>
+        <input type="text" id="table_name" name="table_name" class="form-control" placeholder="e.g. users" required autocomplete="off">
+      </div>
+      
+      <div class="form-group">
+        <label for="num_fields">Number of columns</label>
+        <input type="number" id="num_fields" name="num_fields" class="form-control" value="4" min="1" max="100" required autocomplete="off">
+      </div>
+      
+      <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+        📐 Define Columns
+      </button>
+    </form>
+    
+    <hr style="border-color: var(--panel-border); margin: 24px 0;">
+    
+    <div class="glass-card-header" style="margin-bottom: 12px; border-bottom: none; padding-bottom: 0;">
+      <h2>💀 Drop Database</h2>
+    </div>
+    <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 16px;">
+      Permanently delete the database <code>{{ db_name }}</code> and all its tables. This action is irreversible.
+    </p>
+    <form action="{{ url_for('db_bp.drop_db', db_name=db_name) }}" method="POST">
+      <button type="submit" class="btn btn-danger btn-confirm-delete" style="width: 100%;">
+        💥 Drop Database
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

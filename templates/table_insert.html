@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if is_edit else 'Insert' }}: {{ table_name }} | PySQLManager{% endblock %}
+
+{% block content %}
+<div class="glass-card" style="max-width: 800px; margin: 0 auto;">
+  <div class="glass-card-header">
+    <h2>
+      {{ '✏️ Edit Record' if is_edit else '➕ Insert Row' }} in table: <code>{{ table_name }}</code>
+    </h2>
+    <a href="{{ url_for('table_bp.browse_table', db_name=db_name, table_name=table_name) }}" class="btn btn-secondary btn-sm">⬅️ Back to Browse</a>
+  </div>
+
+  <form method="POST">
+    {% for col in columns %}
+      {% set col_name = col.Field %}
+      {% set col_type = col.Type.lower() %}
+      {% set is_nullable = col.Null == 'YES' %}
+      {% set current_val = row_data[col_name] if is_edit else '' %}
+      
+      <div class="form-group" style="border-bottom: 1px solid var(--panel-border); padding-bottom: 16px; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <label style="font-weight: 600; font-size: 0.95rem;" for="input_{{ col_name }}">
+            <code>{{ col_name }}</code> 
+            <span class="tag" style="font-size: 0.75rem; margin-left: 6px;">{{ col.Type }}</span>
+            {% if col.Extra == 'auto_increment' %}
+              <span class="tag tag-primary" style="font-size: 0.75rem;">A_I</span>
+            {% endif %}
+          </label>
+          
+          {% if is_nullable %}
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--text-sub);">
+              <!-- Checkbox to toggle Null state -->
+              <input type="checkbox" id="null_{{ col_name }}" name="null_{{ col_name }}" 
+                     {% if is_edit and current_val is none %}checked{% endif %}
+                     onchange="document.getElementById('input_{{ col_name }}').disabled = this.checked;">
+              <label for="null_{{ col_name }}" style="margin: 0; padding: 0;">Set NULL</label>
+            </div>
+          {% endif %}
+        </div>
+
+        {% if col.Extra == 'auto_increment' and not is_edit %}
+          <!-- Auto increment hint for insertion -->
+          <input type="text" id="input_{{ col_name }}" class="form-control" placeholder="Auto-increment (leave empty to generate)" disabled>
+        {% else %}
+          <!-- Input selection based on MySQL type -->
+          {% if 'text' in col_type or 'blob' in col_type %}
+            <textarea id="input_{{ col_name }}" name="val_{{ col_name }}" class="form-control" rows="4"
+                      {% if is_edit and current_val is none %}disabled{% endif %}>{{ current_val if current_val is not none else '' }}</textarea>
+                      
+          {% elif 'date' in col_type or 'time' in col_type or 'timestamp' in col_type %}
+            <!-- Standard text input for dates to avoid format conversion errors in raw inputs, but styled cleanly -->
+            <input type="text" id="input_{{ col_name }}" name="val_{{ col_name }}" class="form-control" 
+                   value="{{ current_val if current_val is not none else '' }}" placeholder="YYYY-MM-DD HH:MM:SS"
+                   {% if is_edit and current_val is none %}disabled{% endif %} autocomplete="off">
+                   
+          {% else %}
+            <!-- General field text input -->
+            <input type="text" id="input_{{ col_name }}" name="val_{{ col_name }}" class="form-control" 
+                   value="{{ current_val if current_val is not none else '' }}"
+                   {% if is_edit and current_val is none %}disabled{% endif %} autocomplete="off">
+          {% endif %}
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+      <a href="{{ url_for('table_bp.browse_table', db_name=db_name, table_name=table_name) }}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary">
+        💾 Save Record
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

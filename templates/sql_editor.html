@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}SQL Console | PySQLManager{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+  <div class="glass-card-header">
+    <h2>💻 SQL Query Console {% if db_name %}on Database: <code>{{ db_name }}</code>{% endif %}</h2>
+  </div>
+
+  <div class="sql-workspace">
+    <!-- Left Column: Editor, Buttons, and History -->
+    <div class="sql-editor-container">
+      <form action="{{ url_for('query_bp.sql_console', db_name=db_name) }}" method="POST" id="sql-console-form">
+        {% if db_name %}
+          <input type="hidden" name="db_name" value="{{ db_name }}">
+        {% endif %}
+        
+        <!-- Skeleton query template generators (JS wired) -->
+        {% if active_table %}
+          <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-gen-select">SELECT *</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-gen-insert">INSERT</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-gen-update">UPDATE</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-gen-delete">DELETE</button>
+          </div>
+        {% endif %}
+        
+        <div class="form-group">
+          <label for="sql-query-textarea" class="visually-hidden">Write SQL Query</label>
+          <textarea id="sql-query-textarea" name="query_text" class="form-control sql-textarea" 
+                    placeholder="-- Enter custom SQL queries here (separate multiple statements with ;)"
+                    data-active-table="{{ active_table or '' }}" required autofocus autocomplete="off">{{ query_text }}</textarea>
+        </div>
+        
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px;">
+          <button type="submit" class="btn btn-primary">🚀 Execute Query</button>
+        </div>
+      </form>
+
+      <!-- SQL History List -->
+      <div style="background: rgba(0, 0, 0, 0.15); border: 1px solid var(--panel-border); border-radius: var(--border-radius); padding: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <h3 style="font-size: 0.95rem; font-weight: 600;">⌛ Recent Query History</h3>
+          <button type="button" class="btn btn-secondary btn-sm" id="clear-history-btn" style="padding: 2px 6px; font-size: 0.75rem;">Clear History</button>
+        </div>
+        <div id="sql-history-list" style="max-height: 120px; overflow-y: auto; display: flex; flex-direction: column;">
+          <!-- Loaded from LocalStorage -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Schema helper tree -->
+    <div class="sql-helper-sidebar">
+      <div class="sql-helper-title">📋 DB Schema Reference</div>
+      <div class="sql-helper-tree">
+        {% if db_info %}
+          {% for tbl_name, cols in db_info.items() %}
+            <div class="sql-helper-item">
+              <div class="sql-helper-tbl" data-name="{{ tbl_name }}" title="Click to insert table name">
+                📄 {{ tbl_name }}
+              </div>
+              <div class="sql-helper-cols">
+                {% for col_name in cols %}
+                  <div class="sql-helper-col" data-name="{{ col_name }}" title="Click to insert column name">
+                    🔹 {{ col_name }}
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div style="font-size: 0.85rem; color: var(--text-muted); font-style: italic;">
+            Select a database to view schema reference.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Results Panel -->
+{% if results %}
+  <div class="glass-card">
+    <div class="glass-card-header">
+      <h2>📊 Execution Results</h2>
+    </div>
+
+    {% for res in results %}
+      <div class="sql-log-item {% if res.success %}success{% else %}danger{% endif %}">
+        <div class="sql-statement">{{ res.query }}</div>
+        
+        <div class="sql-log-meta">
+          {% if res.success %}
+            <span style="color: var(--success); font-weight: 600;">✔️ Success</span>
+            {% if res.affected_rows is not none %}
+              | Affected rows: <strong>{{ res.affected_rows }}</strong>
+            {% endif %}
+            {% if res.last_row_id > 0 %}
+              | Last insert ID: <strong>{{ res.last_row_id }}</strong>
+            {% endif %}
+            {% if res.warning_count > 0 %}
+              | Warnings: <strong style="color: var(--warning)">{{ res.warning_count }}</strong>
+            {% endif %}
+          {% else %}
+            <span style="color: var(--danger); font-weight: 600;">❌ Error</span>: {{ res.error }}
+          {% endif %}
+        </div>
+
+        <!-- Render data if the query returned rows (e.g. Select) -->
+        {% if res.success and res.rows %}
+          <div class="table-container" style="margin-top: 16px; max-height: 400px; overflow-y: auto;">
+            <table class="custom-table" aria-label="Query result set">
+              <thead>
+                <tr>
+                  {% for col in res.columns %}
+                    <th>{{ col }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in res.rows %}
+                  <tr>
+                    {% for col in res.columns %}
+                      <td>
+                        {% if row[col] is none %}
+                          <span class="tag" style="font-style: italic;">NULL</span>
+                        {% else %}
+                          {{ row[col] }}
+                        {% endif %}
+                      </td>
+                    {% endfor %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Browse: {{ table_name }} | PySQLManager{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+  <!-- Header with search and filtering -->
+  <div class="glass-card-header" style="flex-wrap: wrap; gap: 16px;">
+    <h2>📄 Table: <code>{{ table_name }}</code></h2>
+    
+    <search>
+      <form action="{{ url_for('table_bp.browse_table', db_name=db_name, table_name=table_name) }}" method="GET" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+        <input type="hidden" name="limit" value="{{ limit }}">
+        
+        <label for="search_col" class="visually-hidden">Search Column</label>
+        <select name="search_col" id="search_col" class="form-control" style="width: 160px; padding: 8px 12px; height: 38px;">
+          <option value="">-- Select Column --</option>
+          {% for col in columns %}
+            <option value="{{ col }}" {% if search_col == col %}selected{% endif %}>{{ col }}</option>
+          {% endfor %}
+        </select>
+        
+        <label for="search_val" class="visually-hidden">Search Value</label>
+        <input type="text" name="search_val" id="search_val" class="form-control" style="width: 200px; padding: 8px 12px; height: 38px;" 
+               placeholder="Search value..." value="{{ search_val }}" autocomplete="off">
+        
+        <button type="submit" class="btn btn-secondary btn-sm" style="height: 38px;">Filter</button>
+        {% if search_val %}
+          <a href="{{ url_for('table_bp.browse_table', db_name=db_name, table_name=table_name, limit=limit) }}" class="btn btn-danger btn-sm" style="height: 38px; display: inline-flex; align-items: center;">Clear</a>
+        {% endif %}
+      </form>
+    </search>
+  </div>
+
+  <!-- Row count and limits info -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-size: 0.9rem; color: var(--text-sub);">
+    <div>
+      Showing rows {{ (page-1)*limit + 1 if total_rows > 0 else 0 }} - {{ [page*limit, total_rows]|min }} of <strong>{{ total_rows }}</strong> total records
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <label for="limit-select">Page limit:</label>
+      <select id="limit-select" class="form-control" style="width: 80px; padding: 4px 8px; height: 28px; font-size: 0.85rem;" 
+              onchange="window.location.href=this.value;">
+        {% for lim in [10, 25, 50, 100] %}
+          <option value="{{ url_for('table_bp.browse_table', db_name=db_name, table_name=table_name, limit=lim, search_col=search_col, search_val=search_val) }}"
+                  {% if limit == lim %}selected{% endif %}>{{ lim }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  {% if rows %}
+    <!-- Data Table View -->
+    <div class="table-container">
+      <table class="custom-table" aria-label="Table records">
+        <thead>
+          <tr>
+            <th style="width: 120px;">Actions</th>
+            {% for col in columns %}
+              {% set direction = 'DESC' if sort_col == col and sort_dir == 'ASC' else 'ASC' %}
+              <th>
+                <a href="{{ url_for('table_bp.browse_table', db_name=db_name, table_name=table_name, sort=col, dir=direction, search_col=search_col, search_val=search_val, limit=limit) }}">
+                  {{ col }}
+                  {% if sort_col == col %}
+                    {{ '▲' if sort_dir == 'ASC' else '▼' }}
+                  {% endif %}
+                </a>
+              </th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <!-- Construct query params for edit/delete operations -->
+            {% set edit_params = {} %}
+            {% if pkeys %}
+              {% for pk in pkeys %}
+                {% set _ = edit_params.update({pk: row[pk]}) %}
+              {% endfor %}
+            {% else %}
+              {% for col in columns %}
+                {% set _ = edit_params.update({col: row[col]}) %}
+              {% endfor %}
+            {% endif %}
+            
+            <tr>
+              <td>
+                <div style="display: flex; gap: 6px;">
+                  <!-- Edit Link -->
+                  <a href="{{ url_for('table_bp.insert_row', db_name=db_name, table_name=table_name, **edit_params) }}" 
+                     class="btn btn-secondary btn-sm" style="padding: 2px 6px; font-size: 0.75rem;">✏️ Edit</a>
+                  
+                  <!-- Delete Action -->
+                  <form action="{{ url_for('table_bp.delete_row', db_name=db_name, table_name=table_name) }}" method="POST" style="display: inline;">
+                    {% for k, v in edit_params.items() %}
+                      <input type="hidden" name="{{ k }}" value="{{ v }}">
+                    {% endfor %}
+                    <button type="submit" class="btn btn-danger btn-sm btn-confirm-delete" style="padding: 2px 6px; font-size: 0.75rem;">🗑️ Delete</button>
+                  </form>
+                </div>
+              </td>
+              
+              {% for col in columns %}
+                <td>
+                  {% if row[col] is none %}
+                    <span class="tag" style="font-style: italic;">NULL</span>
+                  {% elif row[col] is string and row[col]|length > 100 %}
+                    <span title="{{ row[col] }}">{{ row[col][:100] }}...</span>
+                  {% else %}
+                    {{ row[col] }}
+                  {% endif %}
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    {% if total_pages > 1 %}
+      <nav class="pagination" aria-label="Table pagination">
+        <button class="pagination-btn" {% if page == 1 %}disabled{% endif %}
+                onclick="window.location.href='{{ url_for('table_bp.browse_table', db_name=db_name, table_name=table_name, page=1, limit=limit, sort=sort_col, dir=sort_dir, search_col=search_col, search_val=search_val) }}'">First</button>
+        
+        <button class="pagination-btn" {% if page == 1 %}disabled{% endif %}
+                onclick="window.location.href='{{ url_for('table_bp.browse_table', db_name=db_name, table_name=table_name, page=page-1, limit=limit, sort=sort_col, dir=sort_dir, search_col=search_col, search_val=search_val) }}'">Prev</button>
+        
+        <span class="pagination-info" style="color: var(--text-sub); font-size: 0.95rem;">
+          Page <strong>{{ page }}</strong> of {{ total_pages }}
+        </span>
+        
+        <button class="pagination-btn" {% if page == total_pages %}disabled{% endif %}
+                onclick="window.location.href='{{ url_for('table_bp.browse_table', db_name=db_name, table_name=table_name, page=page+1, limit=limit, sort=sort_col, dir=sort_dir, search_col=search_col, search_val=search_val) }}'">Next</button>
+        
+        <button class="pagination-btn" {% if page == total_pages %}disabled{% endif %}
+                onclick="window.location.href='{{ url_for('table_bp.browse_table', db_name=db_name, table_name=table_name, page=total_pages, limit=limit, sort=sort_col, dir=sort_dir, search_col=search_col, search_val=search_val) }}'">Last</button>
+      </nav>
+    {% endif %}
+    
+  {% else %}
+    <div class="alert alert-info" style="margin-top: 10px;">
+      No rows found in this table matching search criteria.
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

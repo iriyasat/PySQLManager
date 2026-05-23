@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}PySQLManager{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>📊 PySQLManager</h1>
+        {% if current_user %}
+          <div class="connection-pill" title="Connected to MySQL server">
+            🟢 {{ current_user }}@{{ current_host }}:{{ current_port }}
+          </div>
+        {% endif %}
+      </div>
+      
+      {% if sidebar_databases %}
+        <div class="sidebar-search">
+          <input type="search" id="sidebar-search-input" placeholder="Filter databases/tables...">
+        </div>
+        
+        <nav class="db-tree" aria-label="Database navigation">
+          <!-- Database Actions -->
+          <div style="padding: 0 8px 12px 8px; border-bottom: 1px solid var(--panel-border); margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px;">
+            <a href="{{ url_for('db_bp.dashboard') }}" class="btn btn-secondary btn-sm" style="justify-content: flex-start; padding: 8px 12px;">🏠 Server Dashboard</a>
+            {% if active_db %}
+              <a href="{{ url_for('query_bp.sql_console', db_name=active_db) }}" class="btn btn-primary btn-sm" style="justify-content: flex-start; padding: 8px 12px;">💻 SQL Console</a>
+            {% else %}
+              <a href="{{ url_for('query_bp.sql_console') }}" class="btn btn-primary btn-sm" style="justify-content: flex-start; padding: 8px 12px;">💻 SQL Console</a>
+            {% endif %}
+          </div>
+          
+          <!-- Database List -->
+          {% for db in sidebar_databases %}
+            <details class="db-item {% if db.is_system %}system-db{% endif %}" {% if active_db == db.name %}open{% endif %}>
+              <summary class="db-summary">
+                <a href="{{ url_for('db_bp.view_db', db_name=db.name) }}" style="color: inherit; pointer-events: auto;">
+                  {{ db.name }}
+                </a>
+              </summary>
+              <div class="table-list">
+                {% if db.tables %}
+                  {% for tbl in db.tables %}
+                    <a href="{{ url_for('table_bp.browse_table', db_name=db.name, table_name=tbl) }}" 
+                       class="table-item {% if active_db == db.name and active_table == tbl %}active{% endif %}">
+                      {{ tbl }}
+                    </a>
+                  {% endfor %}
+                {% else %}
+                  <div style="padding: 4px 12px; font-size: 0.8rem; color: var(--text-muted); font-style: italic;">No tables</div>
+                {% endif %}
+              </div>
+            </details>
+          {% endfor %}
+        </nav>
+      {% endif %}
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="workspace">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <nav class="breadcrumbs" aria-label="Breadcrumb">
+          <a href="{{ url_for('db_bp.dashboard') }}">localhost</a>
+          {% if active_db %}
+            <span class="separator">&gt;</span>
+            <a href="{{ url_for('db_bp.view_db', db_name=active_db) }}" {% if not active_table %}class="crumb-active"{% endif %}>{{ active_db }}</a>
+          {% endif %}
+          {% if active_table %}
+            <span class="separator">&gt;</span>
+            <a href="{{ url_for('table_bp.browse_table', db_name=active_db, table_name=active_table) }}" class="crumb-active">{{ active_table }}</a>
+          {% endif %}
+        </nav>
+        
+        <div class="topbar-actions">
+          {% if current_user %}
+            <a href="{{ url_for('auth_bp.logout') }}" class="btn btn-secondary btn-sm btn-confirm-delete">🔌 Disconnect</a>
+          {% endif %}
+        </div>
+      </header>
+      
+      <!-- Sub-navigation tabs (If in db or table context) -->
+      {% if active_db %}
+        <nav class="workspace-tabs" aria-label="Database context tabs">
+          {% if active_table %}
+            <!-- Table Tabs -->
+            <a href="{{ url_for('table_bp.browse_table', db_name=active_db, table_name=active_table) }}" 
+               class="tab-link {% if request.endpoint == 'table_bp.browse_table' %}active{% endif %}">🔎 Browse</a>
+            <a href="{{ url_for('table_bp.table_structure', db_name=active_db, table_name=active_table) }}" 
+               class="tab-link {% if request.endpoint == 'table_bp.table_structure' %}active{% endif %}">📐 Structure</a>
+            <a href="{{ url_for('query_bp.sql_console', db_name=active_db, table_name=active_table) }}" 
+               class="tab-link {% if request.endpoint == 'query_bp.sql_console' %}active{% endif %}">💻 SQL Query</a>
+            <a href="{{ url_for('table_bp.insert_row', db_name=active_db, table_name=active_table) }}" 
+               class="tab-link {% if request.endpoint == 'table_bp.insert_row' %}active{% endif %}">➕ Insert</a>
+            <a href="{{ url_for('data_bp.export_import_view', db_name=active_db) }}" 
+               class="tab-link {% if request.endpoint == 'data_bp.export_import_view' %}active{% endif %}">📥 Import/Export</a>
+            <a href="{{ url_for('table_bp.table_operations', db_name=active_db, table_name=active_table) }}" 
+               class="tab-link {% if request.endpoint == 'table_bp.table_operations' %}active{% endif %}">⚙️ Operations</a>
+          {% else %}
+            <!-- Database Tabs -->
+            <a href="{{ url_for('db_bp.view_db', db_name=active_db) }}" 
+               class="tab-link {% if request.endpoint == 'db_bp.view_db' %}active{% endif %}">📐 Structure</a>
+            <a href="{{ url_for('query_bp.sql_console', db_name=active_db) }}" 
+               class="tab-link {% if request.endpoint == 'query_bp.sql_console' %}active{% endif %}">💻 SQL Query</a>
+            <a href="{{ url_for('data_bp.export_import_view', db_name=active_db) }}" 
+               class="tab-link {% if request.endpoint == 'data_bp.export_import_view' %}active{% endif %}">📥 Import/Export</a>
+          {% endif %}
+        </nav>
+      {% endif %}
+
+      <!-- Page Viewport Content -->
+      <div class="content-viewport">
+        <!-- Flash notifications -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-messages" style="margin-bottom: 24px;">
+              {% for category, msg in messages %}
+                <div class="alert alert-{{ category }}" role="alert">
+                  <span>{{ msg }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+  
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

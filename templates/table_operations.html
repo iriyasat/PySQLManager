@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Operations: {{ table_name }} | PySQLManager{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+  <!-- Left Side: Table alterations -->
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    <!-- Rename Table -->
+    <div class="glass-card" style="margin-bottom: 0;">
+      <div class="glass-card-header">
+        <h2>🏷️ Rename Table</h2>
+      </div>
+      <form action="{{ url_for('table_bp.table_operations', db_name=db_name, table_name=table_name) }}" method="POST">
+        <input type="hidden" name="action" value="rename">
+        <div class="form-group">
+          <label for="new_name">New Table Name</label>
+          <input type="text" id="new_name" name="new_name" class="form-control" placeholder="{{ table_name }}" required autocomplete="off">
+        </div>
+        <button type="submit" class="btn btn-secondary" style="width: 100%;">🏷️ Rename</button>
+      </form>
+    </div>
+
+    <!-- Copy Table -->
+    <div class="glass-card" style="margin-bottom: 0;">
+      <div class="glass-card-header">
+        <h2>📋 Copy Table</h2>
+      </div>
+      <form action="{{ url_for('table_bp.table_operations', db_name=db_name, table_name=table_name) }}" method="POST">
+        <input type="hidden" name="action" value="copy">
+        <div class="form-group">
+          <label for="copy_name">New Table Name</label>
+          <input type="text" id="copy_name" name="copy_name" class="form-control" placeholder="e.g. {{ table_name }}_copy" required autocomplete="off">
+        </div>
+        <div class="form-group" style="margin-top: 10px;">
+          <label style="font-weight: 600; margin-bottom: 6px;">Copy Method</label>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="radio" id="copy_both" name="copy_type" value="structure_data" checked>
+              <label for="copy_both" style="cursor: pointer;">Structure and data</label>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <input type="radio" id="copy_struct" name="copy_type" value="structure_only">
+              <label for="copy_struct" style="cursor: pointer;">Structure only</label>
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-secondary" style="width: 100%; margin-top: 10px;">📋 Copy Table</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Right Side: Engine parameters and truncates -->
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    <!-- Table Options (Engine, collation) -->
+    <div class="glass-card" style="margin-bottom: 0;">
+      <div class="glass-card-header">
+        <h2>⚙️ Table Parameters</h2>
+      </div>
+      <form action="{{ url_for('table_bp.table_operations', db_name=db_name, table_name=table_name) }}" method="POST">
+        <input type="hidden" name="action" value="alter_options">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="engine">Storage Engine</label>
+            <select id="engine" name="engine" class="form-control">
+              <option value="InnoDB" {% if table_status.Engine == 'InnoDB' %}selected{% endif %}>InnoDB</option>
+              <option value="MyISAM" {% if table_status.Engine == 'MyISAM' %}selected{% endif %}>MyISAM</option>
+              <option value="MEMORY" {% if table_status.Engine == 'MEMORY' %}selected{% endif %}>MEMORY</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="collation">Collation</label>
+            <select id="collation" name="collation" class="form-control">
+              <option value="utf8mb4_general_ci" {% if table_status.Collation == 'utf8mb4_general_ci' %}selected{% endif %}>utf8mb4_general_ci</option>
+              <option value="utf8mb4_unicode_ci" {% if table_status.Collation == 'utf8mb4_unicode_ci' %}selected{% endif %}>utf8mb4_unicode_ci</option>
+              <option value="utf8_general_ci" {% if table_status.Collation == 'utf8_general_ci' %}selected{% endif %}>utf8_general_ci</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="form-group" style="margin-top: 10px;">
+          <label for="auto_increment">Auto Increment starting value</label>
+          <input type="number" id="auto_increment" name="auto_increment" class="form-control" 
+                 value="{{ table_status.Auto_increment if table_status.Auto_increment else '' }}" placeholder="1" autocomplete="off" min="1">
+        </div>
+        
+        <button type="submit" class="btn btn-secondary" style="width: 100%; margin-top: 10px;">💾 Save Options</button>
+      </form>
+    </div>
+
+    <!-- Maintenance Actions -->
+    <div class="glass-card" style="margin-bottom: 0;">
+      <div class="glass-card-header">
+        <h2>💥 Table Maintenance</h2>
+      </div>
+      
+      <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 12px;">
+        Empty Table (Truncate) deletes all data inside <code>{{ table_name }}</code> but retains the structure.
+      </p>
+      <form action="{{ url_for('table_bp.table_operations', db_name=db_name, table_name=table_name) }}" method="POST" style="margin-bottom: 20px;">
+        <input type="hidden" name="action" value="truncate">
+        <button type="submit" class="btn btn-danger btn-confirm-delete" style="width: 100%;">
+          🗑️ Empty the Table (TRUNCATE)
+        </button>
+      </form>
+      
+      <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 12px;">
+        Drop Table deletes all data AND permanently removes <code>{{ table_name }}</code> from the schema.
+      </p>
+      <form action="{{ url_for('table_bp.table_operations', db_name=db_name, table_name=table_name) }}" method="POST">
+        <input type="hidden" name="action" value="drop">
+        <button type="submit" class="btn btn-danger btn-confirm-delete" style="width: 100%;">
+          🔥 Delete the Table (DROP)
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
