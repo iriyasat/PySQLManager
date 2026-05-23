@@ -1,0 +1,178 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard | AdminPanel{% endblock %}
+{% block page_header %}Dashboard Overview{% endblock %}
+
+{% block content %}
+<!-- KPI Stat Cards Row -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+  <!-- Card 1: Employees -->
+  <div class="bg-surface-container-lowest border border-surface-container-low rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+    <div class="flex justify-between items-start mb-3">
+      <div class="p-2 rounded-lg bg-secondary-fixed text-on-secondary-fixed">
+        <span class="material-symbols-outlined text-xl" data-icon="groups">groups</span>
+      </div>
+      <span class="flex items-center text-tertiary-fixed-dim font-label-md text-label-md gap-1">
+        <span class="material-symbols-outlined text-[16px]">trending_up</span> 4%
+      </span>
+    </div>
+    <h3 class="font-caption text-caption text-on-surface-variant uppercase tracking-wider mb-1">Total Staff</h3>
+    <p class="font-display text-display text-2xl font-bold text-on-surface">{{ metrics.employees }}</p>
+  </div>
+  
+  <!-- Card 2: Departments -->
+  <div class="bg-surface-container-lowest border border-surface-container-low rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+    <div class="flex justify-between items-start mb-3">
+      <div class="p-2 rounded-lg bg-surface-container-high text-on-surface-variant">
+        <span class="material-symbols-outlined text-xl" data-icon="domain">domain</span>
+      </div>
+      <span class="flex items-center text-outline font-label-md text-label-md gap-1">
+        <span class="material-symbols-outlined text-[16px]">horizontal_rule</span> 0%
+      </span>
+    </div>
+    <h3 class="font-caption text-caption text-on-surface-variant uppercase tracking-wider mb-1">Departments</h3>
+    <p class="font-display text-display text-2xl font-bold text-on-surface">{{ metrics.departments }}</p>
+  </div>
+  
+  <!-- Card 3: Active Projects -->
+  <div class="bg-surface-container-lowest border border-surface-container-low rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+    <div class="flex justify-between items-start mb-3">
+      <div class="p-2 rounded-lg bg-secondary-fixed text-on-secondary-fixed">
+        <span class="material-symbols-outlined text-xl" data-icon="assignment_turned_in">assignment_turned_in</span>
+      </div>
+      <span class="flex items-center text-tertiary-fixed-dim font-label-md text-label-md gap-1">
+        <span class="material-symbols-outlined text-[16px]">trending_up</span> 12%
+      </span>
+    </div>
+    <h3 class="font-caption text-caption text-on-surface-variant uppercase tracking-wider mb-1">Active Projects</h3>
+    <p class="font-display text-display text-2xl font-bold text-on-surface">{{ metrics.projects }}</p>
+  </div>
+
+  <!-- Card 4: Payroll Commitment -->
+  <div class="bg-surface-container-lowest border border-surface-container-low rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+    <div class="flex justify-between items-start mb-3">
+      <div class="p-2 rounded-lg bg-surface-container-high text-on-surface-variant">
+        <span class="material-symbols-outlined text-xl" data-icon="payments">payments</span>
+      </div>
+      <span class="flex items-center text-error font-label-md text-label-md gap-1">
+        <span class="material-symbols-outlined text-[16px]">trending_down</span> 1%
+      </span>
+    </div>
+    <h3 class="font-caption text-caption text-on-surface-variant uppercase tracking-wider mb-1">Payroll (Active)</h3>
+    <p class="font-display text-display text-2xl font-bold text-on-surface">৳{{ "{:,.0f}".format(metrics.payroll) }}</p>
+  </div>
+
+  <!-- Card 5: Allocated Budget -->
+  <div class="bg-surface-container-lowest border border-surface-container-low rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+    <div class="flex justify-between items-start mb-3">
+      <div class="p-2 rounded-lg bg-secondary-fixed text-on-secondary-fixed">
+        <span class="material-symbols-outlined text-xl" data-icon="account_balance_wallet">account_balance_wallet</span>
+      </div>
+      <span class="flex items-center text-tertiary-fixed-dim font-label-md text-label-md gap-1">
+        <span class="material-symbols-outlined text-[16px]">trending_up</span> 8%
+      </span>
+    </div>
+    <h3 class="font-caption text-caption text-on-surface-variant uppercase tracking-wider mb-1">Total Budget</h3>
+    <p class="font-display text-display text-2xl font-bold text-on-surface">৳{{ "{:,.1f}M".format(metrics.budget / 1000000) if metrics.budget >= 1000000 else "৳{:,.0f}".format(metrics.budget) }}</p>
+  </div>
+</div>
+
+<!-- Main Content Columns -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+  <!-- Left Column: Department Distribution & Recent Hires -->
+  <div class="lg:col-span-2 flex flex-col gap-6">
+    
+    <!-- Department distribution -->
+    <div class="bg-surface-container-lowest border border-surface-container-low rounded-lg shadow-sm overflow-hidden flex flex-col p-5">
+      <div class="flex justify-between items-center mb-6 pb-2 border-b border-surface-container-low">
+        <h3 class="font-headline-md text-headline-md font-semibold text-on-surface">🏢 Staff by Department</h3>
+        <span class="text-caption text-on-surface-variant bg-surface px-2.5 py-1 rounded-full border border-outline-variant font-medium">Headcount loads</span>
+      </div>
+      
+      <div class="space-y-4">
+        {% if dept_distribution %}
+          {% for dept in dept_distribution %}
+            {% set total_staff = metrics.employees if metrics.employees > 0 else 1 %}
+            {% set pct = (dept.emp_count / total_staff * 100)|round|int %}
+            <div>
+              <div class="flex justify-between items-center mb-1.5 font-label-md text-xs">
+                <span class="font-semibold text-on-surface">{{ dept.department_name }}</span>
+                <span class="text-on-surface-variant bg-surface px-2 py-0.5 rounded border border-outline-variant">{{ dept.emp_count }} active ({{ pct }}%)</span>
+              </div>
+              <div class="w-full bg-surface-variant rounded-full h-2.5 overflow-hidden" title="{{ pct }}% of staff">
+                <div class="bg-secondary-container h-2.5 rounded-full" style="width: {{ pct }}%"></div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-on-surface-variant italic py-4">No department statistics found.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Recent Hires -->
+    <div class="bg-surface-container-lowest border border-surface-container-low rounded-lg shadow-sm overflow-hidden flex flex-col p-5">
+      <div class="flex justify-between items-center mb-6 pb-2 border-b border-surface-container-low">
+        <h3 class="font-headline-md text-headline-md font-semibold text-on-surface">🆕 Recent Team Additions</h3>
+        <a href="{{ url_for('employees_list') }}" class="font-label-md text-label-md text-secondary hover:text-secondary-container transition-colors">View All</a>
+      </div>
+      
+      <div class="relative border-l border-outline-variant ml-4 pl-6 space-y-6 my-2">
+        {% if recent_hires %}
+          {% for hire in recent_hires %}
+            <div class="relative">
+              <!-- Timeline Marker -->
+              <span class="absolute -left-[31px] top-1 w-4.5 h-4.5 rounded-full bg-surface border-4 border-secondary-container inline-block"></span>
+              <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-1">
+                <div>
+                  <h4 class="font-semibold text-on-surface">{{ hire.employee_name }}</h4>
+                  <p class="font-caption text-caption text-on-surface-variant">Joined {{ hire.department_name if hire.department_name else 'Unassigned Division' }}</p>
+                </div>
+                <span class="font-caption text-xs text-outline bg-surface px-2 py-0.5 rounded border border-outline-variant">{{ hire.joining_date }}</span>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-on-surface-variant italic py-4">No recent hires logged.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Major Projects Timeline -->
+  <div class="lg:col-span-1 bg-surface-container-lowest border border-surface-container-low rounded-lg shadow-sm flex flex-col p-5">
+    <div class="flex justify-between items-center mb-6 pb-2 border-b border-surface-container-low">
+      <h3 class="font-headline-md text-headline-md font-semibold text-on-surface">📊 Active Projects</h3>
+      <a href="{{ url_for('projects_list') }}" class="p-1 rounded hover:bg-surface-container-high transition-colors text-outline">
+        <span class="material-symbols-outlined text-[20px]">open_in_new</span>
+      </a>
+    </div>
+    
+    <div class="flex-1 flex flex-col gap-6">
+      {% if projects_timeline %}
+        {% for proj in projects_timeline %}
+          <div class="group">
+            <div class="flex justify-between items-center mb-2">
+              <span class="font-body-md text-body-md font-semibold text-on-surface group-hover:text-secondary transition-colors">{{ proj.project_name }}</span>
+              <span class="font-caption text-caption text-outline">Budget: ৳{{ "{:,.0f}".format(proj.budget or 0) }}</span>
+            </div>
+            <div class="w-full bg-surface-variant rounded-full h-2 mb-1.5 overflow-hidden">
+              <div class="bg-secondary h-2 rounded-full" style="width: {{ proj.progress }}%"></div>
+            </div>
+            <div class="flex justify-between items-center text-caption text-xs text-on-surface-variant">
+              <span>{{ proj.progress }}% Timeline Elapsed</span>
+              <span class="font-semibold">{{ proj.member_count }} staff assigned</span>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="text-on-surface-variant italic py-4">No active projects found.</div>
+      {% endif %}
+    </div>
+    
+    <div class="border-t border-surface-container-low text-center mt-6 pt-4">
+      <a href="{{ url_for('projects_list') }}" class="font-label-md text-label-md text-secondary hover:text-secondary-container transition-colors w-full block py-2 rounded-lg hover:bg-surface-container-low">View All Projects</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

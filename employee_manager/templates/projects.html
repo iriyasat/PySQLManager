@@ -1,0 +1,100 @@
+{% extends "layout.html" %}
+
+{% block title %}Projects | AdminPanel{% endblock %}
+{% block page_header %}Projects Tracker{% endblock %}
+
+{% block content %}
+<!-- Top Header / Stats Row -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+  <div>
+    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-primary-fixed text-on-primary-fixed-variant border border-primary-fixed-dim shadow-sm">
+      <span class="material-symbols-outlined text-lg">assessment</span>
+      {{ projects|length }} initiatives tracked
+    </span>
+  </div>
+  <a href="{{ url_for('add_project') }}" class="bg-secondary text-on-secondary px-4 py-2 rounded-lg font-label-md text-label-md flex items-center gap-2 hover:bg-secondary-fixed-variant transition-colors shadow-sm cursor-pointer active:scale-95">
+    <span class="material-symbols-outlined text-[18px]">add</span>
+    Create Project
+  </a>
+</div>
+
+<!-- Projects Cards Grid -->
+{% if projects %}
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+    {% for proj in projects %}
+      <div class="bg-surface-container-lowest border border-surface-container-low hover:border-surface-variant hover:shadow-md rounded-xl p-5 shadow-sm transition-all flex flex-col justify-between">
+        <div>
+          <!-- Card Header -->
+          <div class="flex justify-between items-start gap-4 mb-4">
+            <div>
+              <h3 class="font-headline-md text-lg font-bold text-on-surface leading-tight">{{ proj.project_name }}</h3>
+              <p class="font-caption text-xs text-on-surface-variant mt-1">ID: PROJ-{{ "%03d"|format(proj.project_id) }}</p>
+            </div>
+            <div class="p-2.5 rounded-lg bg-surface-container-low text-secondary">
+              <span class="material-symbols-outlined text-2xl">account_tree</span>
+            </div>
+          </div>
+          
+          <!-- Card Meta Fields -->
+          <div class="space-y-4 border-t border-surface-variant pt-4 mt-2">
+            
+            <!-- Dates / Timeline -->
+            <div class="flex justify-between items-center text-body-md">
+              <span class="text-on-surface-variant font-medium">📅 Timeline</span>
+              <span class="text-on-surface font-semibold text-xs bg-surface px-2 py-1 rounded border border-outline-variant">
+                {{ proj.start_date }} to {{ proj.end_date }}
+              </span>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div>
+              <div class="flex justify-between items-center mb-1.5 font-label-md text-xs">
+                <span class="text-on-surface-variant">Timeline Progress</span>
+                <span class="text-on-surface font-semibold bg-surface-container-low px-2 py-0.5 rounded border border-outline-variant">{{ proj.progress }}%</span>
+              </div>
+              <div class="w-full bg-surface-variant rounded-full h-2 overflow-hidden" title="{{ proj.progress }}% elapsed">
+                <div class="bg-secondary h-2 rounded-full" style="width: {{ proj.progress }}%"></div>
+              </div>
+            </div>
+            
+            <div class="h-px bg-surface-variant my-2"></div>
+            
+            <!-- Stats -->
+            <div class="flex justify-between items-center text-body-md">
+              <span class="text-on-surface-variant font-medium">👥 Allocated Team</span>
+              <span class="text-on-surface font-semibold">{{ proj.member_count }} assigned</span>
+            </div>
+            
+            <div class="flex justify-between items-center text-body-md">
+              <span class="text-on-surface-variant font-medium">Resource Cost</span>
+              <span class="text-on-surface font-semibold font-mono">৳{{ "{:,.2f}".format(proj.resources_cost) }}</span>
+            </div>
+            
+            <div class="flex justify-between items-center text-body-md">
+              <span class="text-on-surface-variant font-medium">Project Budget</span>
+              <span class="text-secondary font-bold font-mono">৳{{ "{:,.2f}".format(proj.budget or 0) }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Card Actions -->
+        <div class="flex gap-3 border-t border-surface-variant pt-4 mt-6">
+          <a href="{{ url_for('edit_project', proj_id=proj.project_id) }}" class="flex-1 py-2 px-3 bg-surface-container-low hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded-lg border border-outline-variant hover:border-outline text-center transition-colors">
+            Edit Settings
+          </a>
+          <form action="{{ url_for('delete_project', proj_id=proj.project_id) }}" method="POST" class="delete-form flex-1">
+            <button type="submit" class="w-full py-2 px-3 bg-error-container hover:bg-error/20 text-on-error-container hover:text-error border border-error/20 hover:border-error/40 font-label-md text-label-md rounded-lg transition-colors">
+              Delete
+            </button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert px-6 py-8 text-center text-on-surface-variant font-medium bg-surface-bright rounded-xl border border-surface-variant">
+    <span class="material-symbols-outlined text-4xl text-outline mb-2 block">folder_off</span>
+    No projects tracked yet. Create one to begin linking team members!
+  </div>
+{% endif %}
+{% endblock %}

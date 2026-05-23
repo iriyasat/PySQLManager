@@ -80,64 +80,66 @@
 </div>
 
 <!-- Results Panel -->
-{% if results %}
-  <div class="glass-card">
-    <div class="glass-card-header">
-      <h2>📊 Execution Results</h2>
-    </div>
+<div id="sql-results-container">
+  {% if results %}
+    <div class="glass-card">
+      <div class="glass-card-header">
+        <h2>📊 Execution Results</h2>
+      </div>
 
-    {% for res in results %}
-      <div class="sql-log-item {% if res.success %}success{% else %}danger{% endif %}">
-        <div class="sql-statement">{{ res.query }}</div>
-        
-        <div class="sql-log-meta">
-          {% if res.success %}
-            <span style="color: var(--success); font-weight: 600;">✔️ Success</span>
-            {% if res.affected_rows is not none %}
-              | Affected rows: <strong>{{ res.affected_rows }}</strong>
+      {% for res in results %}
+        <div class="sql-log-item {% if res.success %}success{% else %}danger{% endif %}">
+          <div class="sql-statement">{{ res.query }}</div>
+          
+          <div class="sql-log-meta">
+            {% if res.success %}
+              <span style="color: var(--success); font-weight: 600;">✔️ Success</span>
+              {% if res.affected_rows is not none %}
+                | Affected rows: <strong>{{ res.affected_rows }}</strong>
+              {% endif %}
+              {% if res.last_row_id > 0 %}
+                | Last insert ID: <strong>{{ res.last_row_id }}</strong>
+              {% endif %}
+              {% if res.warning_count > 0 %}
+                | Warnings: <strong style="color: var(--warning)">{{ res.warning_count }}</strong>
+              {% endif %}
+            {% else %}
+              <span style="color: var(--danger); font-weight: 600;">❌ Error</span>: {{ res.error }}
             {% endif %}
-            {% if res.last_row_id > 0 %}
-              | Last insert ID: <strong>{{ res.last_row_id }}</strong>
-            {% endif %}
-            {% if res.warning_count > 0 %}
-              | Warnings: <strong style="color: var(--warning)">{{ res.warning_count }}</strong>
-            {% endif %}
-          {% else %}
-            <span style="color: var(--danger); font-weight: 600;">❌ Error</span>: {{ res.error }}
-          {% endif %}
-        </div>
+          </div>
 
-        <!-- Render data if the query returned rows (e.g. Select) -->
-        {% if res.success and res.rows %}
-          <div class="table-container" style="margin-top: 16px; max-height: 400px; overflow-y: auto;">
-            <table class="custom-table" aria-label="Query result set">
-              <thead>
-                <tr>
-                  {% for col in res.columns %}
-                    <th>{{ col }}</th>
-                  {% endfor %}
-                </tr>
-              </thead>
-              <tbody>
-                {% for row in res.rows %}
+          <!-- Render data if the query returned rows (e.g. Select) -->
+          {% if res.success and res.rows %}
+            <div class="table-container" style="margin-top: 16px; max-height: 400px; overflow-y: auto;">
+              <table class="custom-table" aria-label="Query result set">
+                <thead>
                   <tr>
                     {% for col in res.columns %}
-                      <td>
-                        {% if row[col] is none %}
-                          <span class="tag" style="font-style: italic;">NULL</span>
-                        {% else %}
-                          {{ row[col] }}
-                        {% endif %}
-                      </td>
+                      <th>{{ col }}</th>
                     {% endfor %}
                   </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% endif %}
-      </div>
-    {% endfor %}
-  </div>
-{% endif %}
+                </thead>
+                <tbody>
+                  {% for row in res.rows %}
+                    <tr>
+                      {% for col in res.columns %}
+                        <td>
+                          {% if row[col] is none %}
+                            <span class="tag" style="font-style: italic;">NULL</span>
+                          {% else %}
+                            {{ row[col] }}
+                          {% endif %}
+                        </td>
+                      {% endfor %}
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
 {% endblock %}

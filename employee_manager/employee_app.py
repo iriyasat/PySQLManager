@@ -7,24 +7,19 @@ import datetime
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = Flask(
-    __name__,
-    template_folder='employee_templates',
-    static_folder='employee_static',
-    static_url_path='/employee_static'
-)
+app = Flask(__name__)
 app.secret_key = 'employee_management_system_secure_secret_key_1012'
 
 def get_db_connection():
     """
-    Establishes a connection to the employee_management_system database on port 3307.
+    Establishes a connection to the employee_management database on port 3307.
     """
     return pymysql.connect(
         host='localhost',
         port=3307,
         user='root',
         password='',
-        database='employee_management_system',
+        database='employee_management',
         charset='utf8mb4',
         cursorclass=pymysql.cursors.DictCursor
     )
@@ -112,6 +107,23 @@ def dashboard():
     timeline_res = execute_query(proj_timeline_query)
     projects_timeline = timeline_res['data'] if timeline_res['success'] else []
     
+    # Calculate progress for dashboard projects
+    today = datetime.date.today()
+    for proj in projects_timeline:
+        start = proj.get('start_date')
+        end = proj.get('end_date')
+        if start and end:
+            if today < start:
+                proj['progress'] = 0
+            elif today > end:
+                proj['progress'] = 100
+            else:
+                total_days = (end - start).days
+                elapsed_days = (today - start).days
+                proj['progress'] = int((elapsed_days / total_days) * 100) if total_days > 0 else 0
+        else:
+            proj['progress'] = 0
+            
     return render_template('index.html',
                            metrics=metrics,
                            dept_distribution=dept_distribution,

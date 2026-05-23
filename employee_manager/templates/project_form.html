@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ 'Modify Project' if is_edit else 'Create Project' }} | AdminPanel{% endblock %}
+{% block page_header %}{{ 'Modify Project Parameters' if is_edit else 'Establish New Initiative' }}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto bg-surface-container-lowest border border-surface-container-low rounded-xl p-6 shadow-sm">
+  <!-- Form Header -->
+  <div class="flex justify-between items-center border-b border-surface-variant pb-4 mb-6">
+    <h3 class="font-headline-md text-lg font-bold text-on-surface flex items-center gap-2">
+      <span class="material-symbols-outlined text-secondary">{{ 'edit' if is_edit else 'playlist_add' }}</span>
+      {{ 'Edit Project' if is_edit else 'New Project' }}
+    </h3>
+    <a href="{{ url_for('projects_list') }}" class="bg-surface-container-low hover:bg-surface-container-high text-on-surface font-label-md text-label-md py-1.5 px-3 rounded-lg border border-outline-variant hover:border-outline transition-colors text-center">
+      Back to Timelines
+    </a>
+  </div>
+  
+  <!-- Form Body -->
+  <form method="POST" id="project-form" class="space-y-4">
+    <!-- Project Name -->
+    <div>
+      <label for="project_name" class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">Project Name</label>
+      <input type="text" id="project_name" name="project_name" class="w-full bg-surface-container-low border border-outline-variant rounded-lg py-2 px-4 font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" 
+             value="{{ project.project_name if project.project_name else '' }}" placeholder="e.g. Project Apollo" required autocomplete="off">
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Start Date -->
+      <div>
+        <label for="start_date" class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">Start Date</label>
+        <input type="date" id="start_date" name="start_date" class="w-full bg-surface-container-low border border-outline-variant rounded-lg py-2 px-4 font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" 
+               value="{{ project.start_date if project.start_date else '' }}" required autocomplete="off">
+      </div>
+      
+      <!-- End Date -->
+      <div>
+        <label for="end_date" class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">End Date</label>
+        <input type="date" id="end_date" name="end_date" class="w-full bg-surface-container-low border border-outline-variant rounded-lg py-2 px-4 font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" 
+               value="{{ project.end_date if project.end_date else '' }}" required autocomplete="off">
+      </div>
+    </div>
+    
+    <!-- Project Budget -->
+    <div>
+      <label for="budget" class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">Project Budget (৳)</label>
+      <input type="number" id="budget" name="budget" class="w-full bg-surface-container-low border border-outline-variant rounded-lg py-2 px-4 font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" step="0.01" min="0"
+             value="{{ project.budget if project.budget else '0.00' }}" placeholder="150000.00" required autocomplete="off">
+    </div>
+    
+    <!-- Footer buttons -->
+    <div class="flex justify-end gap-3 border-t border-surface-variant pt-5 mt-8">
+      <a href="{{ url_for('projects_list') }}" class="py-2 px-4 bg-surface-container-low hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded-lg border border-outline-variant hover:border-outline transition-colors text-center">
+        Cancel
+      </a>
+      <button type="submit" class="py-2.5 px-5 bg-secondary text-on-secondary hover:bg-secondary-fixed-variant rounded-lg font-label-md text-label-md transition-colors shadow-sm cursor-pointer active:scale-95 text-center flex items-center gap-2">
+        <span class="material-symbols-outlined text-[18px]">save</span>
+        Save Project
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

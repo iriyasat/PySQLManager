@@ -122,21 +122,183 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     };
 
-    // Save query on submit
+    // HTML escaping helper for safe data rendering
+    const escapeHtml = (str) => {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    };
+
+    // Save query on submit and execute via AJAX
     const sqlForm = document.getElementById('sql-console-form');
-    if (sqlForm) {
-      sqlForm.addEventListener('submit', () => {
+    const resultsContainer = document.getElementById('sql-results-container');
+
+    if (sqlForm && resultsContainer) {
+      sqlForm.addEventListener('submit', (e) => {
+        e.preventDefault(); // Prevent standard page reload
+        
         const query = sqlTextarea.value.trim();
-        if (query) {
-          let history = JSON.parse(localStorage.getItem('pysql_history') || '[]');
-          // Remove duplicate if exists
-          history = history.filter(h => h !== query);
-          // Add to beginning
-          history.unshift(query);
-          // Limit to 20 queries
-          if (history.length > 20) history.pop();
-          localStorage.setItem('pysql_history', JSON.stringify(history));
-        }
+        if (!query) return;
+        
+        // Save to query history
+        let history = JSON.parse(localStorage.getItem('pysql_history') || '[]');
+        history = history.filter(h => h !== query);
+        history.unshift(query);
+        if (history.length > 20) history.pop();
+        localStorage.setItem('pysql_history', JSON.stringify(history));
+        loadHistory();
+        
+        // Show loading state
+        const submitBtn = sqlForm.querySelector('button[type="submit"]');
+        const originalBtnHTML = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '⏳ Executing...';
+        
+        resultsContainer.innerHTML = `
+          <div class="glass-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; min-height: 200px;">
+            <div class="spinner" style="border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 16px;"></div>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">Executing query statements sequentially...</p>
+          </div>
+          <style>
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          </style>
+        `;
+        
+        // Prepare Form Data
+        const formData = new FormData(sqlForm);
+        
+        // Make the AJAX request
+        fetch(sqlForm.action, {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: formData
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          // Re-enable button
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnHTML;
+          
+          if (!data.results || data.results.length === 0) {
+            resultsContainer.innerHTML = '';
+            return;
+          }
+          
+          // Build results HTML
+          let html = `
+            <div class="glass-card">
+              <div class="glass-card-header">
+                <h2>📊 Execution Results</h2>
+              </div>
+          `;
+          
+          data.results.forEach(res => {
+            const statusClass = res.success ? 'success' : 'danger';
+            html += `
+              <div class="sql-log-item ${statusClass}">
+                <div class="sql-statement">${escapeHtml(res.query)}</div>
+                <div class="sql-log-meta">
+            `;
+            
+            if (res.success) {
+              html += `<span style="color: var(--success); font-weight: 600;">✔️ Success</span>`;
+              if (res.affected_rows !== null && res.affected_rows !== undefined) {
+                html += ` | Affected rows: <strong>${res.affected_rows}</strong>`;
+              }
+              if (res.last_row_id > 0) {
+                html += ` | Last insert ID: <strong>${res.last_row_id}</strong>`;
+              }
+              if (res.warning_count > 0) {
+                html += ` | Warnings: <strong style="color: var(--warning)">${res.warning_count}</strong>`;
+              }
+            } else {
+              html += `<span style="color: var(--danger); font-weight: 600;">❌ Error</span>: ${escapeHtml(res.error)}`;
+            }
+            
+            html += `
+                </div>
+            `;
+            
+            // Render rows if returned
+            if (res.success && res.rows && res.rows.length > 0) {
+              html += `
+                <div class="table-container" style="margin-top: 16px; max-height: 400px; overflow-y: auto;">
+                  <table class="custom-table" aria-label="Query result set">
+                    <thead>
+                      <tr>
+              `;
+              
+              res.columns.forEach(col => {
+                html += `<th>${escapeHtml(col)}</th>`;
+              });
+              
+              html += `
+                      </tr>
+                    </thead>
+                    <tbody>
+              `;
+              
+              res.rows.forEach(row => {
+                html += `<tr>`;
+                res.columns.forEach(col => {
+                  const val = row[col];
+                  if (val === null || val === undefined) {
+                    html += `<td><span class="tag" style="font-style: italic;">NULL</span></td>`;
+                  } else {
+                    html += `<td>${escapeHtml(val)}</td>`;
+                  }
+                });
+                html += `</tr>`;
+              });
+              
+              html += `
+                    </tbody>
+                  </table>
+                </div>
+              `;
+            } else if (res.success && res.columns && res.columns.length > 0) {
+              // Handle empty result sets for queries like SHOW or SELECT returning 0 rows
+              html += `
+                <div style="margin-top: 12px; font-style: italic; color: var(--text-muted); font-size: 0.95rem;">
+                  Empty set (query returned 0 rows).
+                </div>
+              `;
+            }
+            
+            html += `</div>`;
+          });
+          
+          html += `</div>`;
+          resultsContainer.innerHTML = html;
+        })
+        .catch(err => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnHTML;
+          resultsContainer.innerHTML = `
+            <div class="glass-card" style="border-left: 4px solid var(--danger);">
+              <div class="glass-card-header">
+                <h2>❌ Query Execution Failed</h2>
+              </div>
+              <div style="padding: 16px; color: var(--danger);">
+                Failed to communicate with database server. Detail: ${escapeHtml(err.message)}
+              </div>
+            </div>
+          `;
+        });
       });
     }
 

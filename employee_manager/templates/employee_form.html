@@ -1,0 +1,108 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ 'Modify Employee' if is_edit else 'Add Employee' }} | AdminPanel{% endblock %}
+{% block page_header %}{{ 'Modify Employee Details' if is_edit else 'Add Employee Record' }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-surface-container-lowest border border-surface-container-low rounded-xl p-6 shadow-sm">
+  <!-- Form Header -->
+  <div class="flex justify-between items-center border-b border-surface-variant pb-4 mb-6">
+    <h3 class="font-headline-md text-lg font-bold text-on-surface flex items-center gap-2">
+      <span class="material-symbols-outlined text-secondary">{{ 'edit' if is_edit else 'person_add' }}</span>
+      {{ 'Edit Profile' if is_edit else 'New Employee' }}
+    </h3>
+    <a href="{{ url_for('employees_list') }}" class="bg-surface-container-low hover:bg-surface-container-high text-on-surface font-label-md text-label-md py-1.5 px-3 rounded-lg border border-outline-variant hover:border-outline transition-colors text-center">
+      Back to Directory
+    </a>
+  </div>
+  
+  <!-- Form Body -->
+  <form method="POST" class="space-y-4">
+    <!-- Full Name -->
+    <div>
+      <label for="employee_name" class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">Full Name</label>
+      <input type="text" id="employee_name" name="employee_name" class="w-full bg-surface-container-low border border-outline-variant rounded-lg py-2 px-4 font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" 
+             value="{{ employee.employee_name if employee.employee_name else '' }}" placeholder="e.g. John Doe" required autocomplete="off">
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Email Address -->
+      <div>
+        <label for="email" class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">Email Address</label>
+        <input type="email" id="email" name="email" class="w-full bg-surface-container-low border border-outline-variant rounded-lg py-2 px-4 font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" 
+               value="{{ employee.email if employee.email else '' }}" placeholder="john.doe@company.com" required autocomplete="off">
+      </div>
+      
+      <!-- Phone Number -->
+      <div>
+        <label for="phone" class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">Phone Number (Optional)</label>
+        <input type="text" id="phone" name="phone" class="w-full bg-surface-container-low border border-outline-variant rounded-lg py-2 px-4 font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" 
+               value="{{ employee.phone if employee.phone else '' }}" placeholder="e.g. 01712000000" autocomplete="off">
+      </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Annual Salary -->
+      <div>
+        <label for="salary" class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">Annual Salary (৳)</label>
+        <input type="number" id="salary" name="salary" class="w-full bg-surface-container-low border border-outline-variant rounded-lg py-2 px-4 font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" step="0.01" min="0" 
+               value="{{ employee.salary if employee.salary else '0.00' }}" placeholder="85000.00" required autocomplete="off">
+      </div>
+      
+      <!-- Joining Date -->
+      <div>
+        <label for="joining_date" class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">Joining Date</label>
+        <input type="date" id="joining_date" name="joining_date" class="w-full bg-surface-container-low border border-outline-variant rounded-lg py-2 px-4 font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary" 
+               value="{{ employee.joining_date if employee.joining_date else '' }}" required autocomplete="off">
+      </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Department -->
+      <div>
+        <label for="department_id" class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-1.5">Department Allocation</label>
+        <div class="relative">
+          <select id="department_id" name="department_id" class="w-full appearance-none bg-surface-container-low border border-outline-variant rounded-lg py-2 pl-4 pr-10 font-body-md text-body-md text-on-surface focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary cursor-pointer">
+            <option value="">-- Unassigned / Floating Staff --</option>
+            {% for dept in departments %}
+              <option value="{{ dept.department_id }}" 
+                      {% if employee.department_id|string == dept.department_id|string %}selected{% endif %}>
+                {{ dept.department_name }}
+              </option>
+            {% endfor %}
+          </select>
+          <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
+        </div>
+      </div>
+      
+      <!-- Active Status checkbox -->
+      <div class="flex items-center pt-6 pl-2">
+        <label class="inline-flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" name="status" id="status" {% if employee.status is not defined or employee.status %}checked{% endif %} 
+                 class="w-5 h-5 rounded border-outline-variant text-secondary focus:ring-secondary focus:ring-opacity-25 accent-secondary">
+          <span class="font-semibold text-on-surface text-sm">Active Employee Status</span>
+        </label>
+      </div>
+    </div>
+    
+    <!-- Footer buttons -->
+    <div class="flex justify-end gap-3 border-t border-surface-variant pt-5 mt-8">
+      <a href="{{ url_for('employees_list') }}" class="py-2 px-4 bg-surface-container-low hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded-lg border border-outline-variant hover:border-outline transition-colors text-center">
+        Cancel
+      </a>
+      <button type="submit" class="py-2.5 px-5 bg-secondary text-on-secondary hover:bg-secondary-fixed-variant rounded-lg font-label-md text-label-md transition-colors shadow-sm cursor-pointer active:scale-95 text-center flex items-center gap-2">
+        <span class="material-symbols-outlined text-[18px]">save</span>
+        Save Profile
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+  // Pre-fill today's date if inserting a new employee
+  if (!document.getElementById('joining_date').value) {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('joining_date').value = today;
+  }
+</script>
+{% endblock %}

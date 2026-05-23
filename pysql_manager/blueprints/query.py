@@ -1,7 +1,26 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, current_app, jsonify
 from db_helper import CredentialsCrypto, execute_query, split_sql_script
 
+import datetime
+from decimal import Decimal
+
 query_bp = Blueprint('query_bp', __name__)
+
+def make_json_serializable(data):
+    if isinstance(data, dict):
+        return {k: make_json_serializable(v) for k, v in data.items()}
+    elif isinstance(data, list):
+        return [make_json_serializable(item) for item in data]
+    elif isinstance(data, (datetime.datetime, datetime.date)):
+        return data.isoformat()
+    elif isinstance(data, Decimal):
+        return str(data)
+    elif isinstance(data, bytes):
+        try:
+            return data.decode('utf-8')
+        except UnicodeDecodeError:
+            return data.hex()
+    return data
 
 def get_creds():
     crypto = CredentialsCrypto(current_app.secret_key)
@@ -35,9 +54,10 @@ def sql_console():
                 break
                 
         if is_ajax:
+            serialized_results = make_json_serializable(execution_results)
             return jsonify({
                 'success': all(r['success'] for r in execution_results),
-                'results': execution_results
+                'results': serialized_results
             })
             
     # Gather column and table helpers for the current database

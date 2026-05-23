@@ -1,4 +1,8 @@
+import sys
+import os
 import unittest
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../employee_manager')))
+
 from employee_app import app, execute_query
 
 class TestEmployeeManagementSystem(unittest.TestCase):
@@ -14,10 +18,10 @@ class TestEmployeeManagementSystem(unittest.TestCase):
         
         # Check if dashboard contains major dashboard texts
         html = response.data.decode('utf-8')
-        self.assertIn("HR Core Portal", html)
+        self.assertIn("AdminPanel", html)
         self.assertIn("Dashboard Overview", html)
         self.assertIn("Total Staff", html)
-        self.assertIn("Payroll Commitment", html)
+        self.assertIn("Payroll", html)
 
     def test_employees_list(self):
         """Test employees directory loads seeded records"""
@@ -25,9 +29,9 @@ class TestEmployeeManagementSystem(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         
         html = response.data.decode('utf-8')
-        self.assertIn("Alice Henderson", html)
-        self.assertIn("alice.h@company.com", html)
-        self.assertIn("Bob Miller", html)
+        self.assertIn("Tanvir Ahmed", html)
+        self.assertIn("tanvir.ahmed@company.com", html)
+        self.assertIn("Mehjabin Noor", html)
         self.assertIn("Engineering", html)
 
     def test_departments_list(self):
@@ -37,8 +41,8 @@ class TestEmployeeManagementSystem(unittest.TestCase):
         
         html = response.data.decode('utf-8')
         self.assertIn("Engineering", html)
-        self.assertIn("Sales &amp; Marketing", html)
-        self.assertIn("Floor 4, Block A", html)
+        self.assertIn("Marketing", html)
+        self.assertIn("Dhaka", html)
 
     def test_projects_list(self):
         """Test projects timelines view contains budgeted projects"""
@@ -46,8 +50,8 @@ class TestEmployeeManagementSystem(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         
         html = response.data.decode('utf-8')
-        self.assertIn("Project Apollo", html)
-        self.assertIn("OmniChannel Portal", html)
+        self.assertIn("Smart Hospital Management", html)
+        self.assertIn("E-Commerce ERP System", html)
 
     def test_add_and_delete_employee(self):
         """Test complete CRUD lifecycle by adding and then removing an employee record"""
