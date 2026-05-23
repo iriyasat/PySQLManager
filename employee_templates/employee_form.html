@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ 'Modify Employee' if is_edit else 'Add Employee' }} | HR Core Portal{% endblock %}
+{% block page_header %}{{ 'Modify Employee Details' if is_edit else 'Add Employee Record' }}{% endblock %}
+
+{% block content %}
+<div class="glass-panel" style="max-width: 680px; margin: 0 auto;">
+  <div class="panel-header">
+    <h2>{{ '✏️ Edit Profile' if is_edit else '👥 New Employee' }}</h2>
+    <a href="{{ url_for('employees_list') }}" class="btn btn-secondary btn-sm">⬅️ Back to Directory</a>
+  </div>
+  
+  <form method="POST">
+    <div class="form-group">
+      <label for="employee_name">Full Name</label>
+      <input type="text" id="employee_name" name="employee_name" class="form-control" 
+             value="{{ employee.employee_name if employee.employee_name else '' }}" placeholder="e.g. John Doe" required autocomplete="off">
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" class="form-control" 
+               value="{{ employee.email if employee.email else '' }}" placeholder="john.doe@company.com" required autocomplete="off">
+      </div>
+      
+      <div class="form-group">
+        <label for="phone">Phone Number (Optional)</label>
+        <input type="text" id="phone" name="phone" class="form-control" 
+               value="{{ employee.phone if employee.phone else '' }}" placeholder="e.g. +1-555-0100" autocomplete="off">
+      </div>
+    </div>
+    
+    <div class="form-row" style="margin-top: 10px;">
+      <div class="form-group">
+        <label for="salary">Annual Salary ($)</label>
+        <input type="number" id="salary" name="salary" class="form-control" step="0.01" min="0" 
+               value="{{ employee.salary if employee.salary else '0.00' }}" placeholder="85000.00" required autocomplete="off">
+      </div>
+      
+      <div class="form-group">
+        <label for="joining_date">Joining Date</label>
+        <input type="date" id="joining_date" name="joining_date" class="form-control" 
+               value="{{ employee.joining_date if employee.joining_date else '' }}" required autocomplete="off">
+      </div>
+    </div>
+    
+    <div class="form-row" style="margin-top: 10px;">
+      <div class="form-group">
+        <label for="department_id">Department Allocation</label>
+        <select id="department_id" name="department_id" class="form-control">
+          <option value="">-- Unassigned / Floating Staff --</option>
+          {% for dept in departments %}
+            <option value="{{ dept.department_id }}" 
+                    {% if employee.department_id|string == dept.department_id|string %}selected{% endif %}>
+              {{ dept.department_name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      <div class="form-group" style="justify-content: center; padding-left: 10px;">
+        <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; margin-top: 24px;">
+          <input type="checkbox" name="status" id="status" {% if employee.status is not defined or employee.status %}checked{% endif %} 
+                 style="width: 18px; height: 18px; accent-color: var(--primary-accent);">
+          <span style="font-weight: 500;">Active Employee Status</span>
+        </label>
+      </div>
+    </div>
+    
+    <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px; border-top: 1px solid var(--panel-border); padding-top: 20px;">
+      <a href="{{ url_for('employees_list') }}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary">
+        💾 Save Profile
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+  // Pre-fill today's date if inserting a new employee
+  if (!document.getElementById('joining_date').value) {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('joining_date').value = today;
+  }
+</script>
+{% endblock %}
